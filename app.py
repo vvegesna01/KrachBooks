@@ -11,40 +11,56 @@ import json
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="KrachBooks 📚",
-    page_icon="📚",
+    page_title="KrachBooks",
+    page_icon="auto_stories",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── Dark theme styling ────────────────────────────────────────────────────────
+# ── Midnight Ink theme styling ────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    vertical-align: middle;
+}
 
 html, body, [class*="stApp"], .main, section[data-testid="stSidebar"] {
-    background-color: #1A1209 !important;
-    color: #F0E6D3 !important;
+    background-color: #1A1A2E !important;
+    color: #E0E0E0 !important;
     font-family: 'Lato', sans-serif;
 }
 section[data-testid="stSidebar"] {
-    background-color: #120D06 !important;
-    border-right: 1px solid #3A2510;
+    background-color: #16213E !important;
+    border-right: 1px solid #0F3460;
 }
-section[data-testid="stSidebar"] * { color: #D4B896 !important; }
+section[data-testid="stSidebar"] * { color: #E0E0E0 !important; }
 
 .main-header {
     font-family: 'Playfair Display', serif;
     font-size: 3rem;
     font-weight: 900;
-    color: #F5D9A8;
+    color: #00B4D8;
     letter-spacing: -1px;
     line-height: 1.1;
 }
 .sub-header {
     font-family: 'Lato', sans-serif;
     font-weight: 300;
-    color: #A07850;
+    color: #6B7280;
     font-size: 1.1rem;
     margin-top: -0.5rem;
 }
@@ -52,42 +68,42 @@ section[data-testid="stSidebar"] * { color: #D4B896 !important; }
     font-family: 'Playfair Display', serif;
     font-size: 1.7rem;
     font-weight: 700;
-    color: #F5D9A8;
-    border-bottom: 3px solid #C47A30;
+    color: #E0E0E0;
+    border-bottom: 3px solid #00B4D8;
     padding-bottom: 0.3rem;
     margin-bottom: 1rem;
 }
 .stat-card {
-    background: linear-gradient(135deg, #2A1A08 0%, #3A2510 100%);
+    background: #0F3460;
     border-radius: 16px;
     padding: 1.5rem;
-    border: 1px solid #5A3820;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    border: 1px solid #0F3460;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     text-align: center;
 }
 .stat-number {
     font-family: 'Playfair Display', serif;
     font-size: 2.8rem;
     font-weight: 900;
-    color: #E8A050;
+    color: #00B4D8;
     line-height: 1;
 }
 .stat-label {
     font-size: 0.8rem;
-    color: #A07850;
+    color: #6B7280;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 0.4rem;
 }
 .quote-card {
-    background: #221508;
-    border-left: 4px solid #C47A30;
+    background: #16213E;
+    border-left: 4px solid #00B4D8;
     padding: 1rem 1.5rem;
     border-radius: 0 12px 12px 0;
     margin: 0.5rem 0;
     font-style: italic;
-    color: #D4B896;
+    color: #E0E0E0;
 }
 /* ── Badge animations ── */
 @keyframes badgeEntrance {
@@ -101,13 +117,9 @@ section[data-testid="stSidebar"] * { color: #D4B896 !important; }
     33%       { transform: translateY(-6px) rotate(1.5deg); }
     66%       { transform: translateY(-3px) rotate(-1deg); }
 }
-# @keyframes shimmer {
-#     0%   { background-position: -200% center; }
-#     100% { background-position: 200% center; }
-# }
-@keyframes goldPulse {
-    0%, 100% { box-shadow: 0 0 12px 4px rgba(232,160,80,0.3), 0 0 0 0 rgba(232,160,80,0); }
-    50%       { box-shadow: 0 0 24px 8px rgba(232,160,80,0.6), 0 0 40px 12px rgba(232,160,80,0.2); }
+@keyframes electricPulse {
+    0%, 100% { box-shadow: 0 0 12px 4px rgba(0,180,216,0.3), 0 0 0 0 rgba(0,180,216,0); }
+    50%       { box-shadow: 0 0 24px 8px rgba(0,180,216,0.6), 0 0 40px 12px rgba(0,180,216,0.2); }
 }
 @keyframes lockedWobble {
     0%, 100% { transform: rotate(0deg); }
@@ -119,28 +131,28 @@ section[data-testid="stSidebar"] * { color: #D4B896 !important; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem 0.5rem;
-    border-radius: 20px;
+    padding: 0.5rem 0.5rem;
+    border-radius: 10px;
     cursor: default;
     transition: background 0.3s ease;
     position: relative;
 }
 .badge-wrap:hover {
-    background: rgba(196,122,48,0.08);
+    background: rgba(0,180,216,0.08);
 }
 
 .badge-img-earned {
     animation:
         badgeEntrance 0.7s cubic-bezier(0.34,1.56,0.64,1) both,
         badgeFloat 4s ease-in-out 0.7s infinite;
-    filter: drop-shadow(0 6px 16px rgba(232,160,80,0.55))
+    filter: drop-shadow(0 6px 16px rgba(0,180,216,0.55))
             drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 .badge-img-earned:hover {
     animation: none;
     transform: scale(1.18) rotate(-3deg);
-    filter: drop-shadow(0 10px 28px rgba(232,160,80,0.9))
+    filter: drop-shadow(0 10px 28px rgba(0,180,216,0.9))
             drop-shadow(0 4px 8px rgba(0,0,0,0.7));
 }
 
@@ -157,31 +169,55 @@ section[data-testid="stSidebar"] * { color: #D4B896 !important; }
 .badge-glow {
     position: relative;
     display: inline-block;
-    border-radius: 50%;
-    animation: goldPulse 3s ease-in-out infinite;
+    z-index: 1; 
 }
-.badge-glow::after {
+
+.badge-glow::before {
     content: '';
     position: absolute;
-    inset: -4px;
+    inset: -10px; 
     border-radius: 50%;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(232,160,80,0.6) 40%,
-        rgba(255,220,120,0.9) 50%,
-        rgba(232,160,80,0.6) 60%,
-        transparent 100%
+    background: radial-gradient(circle, 
+        rgba(0,180,216,0.7) 0%, 
+        rgba(0,180,216,0.3) 45%, 
+        transparent 70%
     );
-    background-size: 200% 100%;
-    animation: shimmer 2.5s linear infinite;
-    border-radius: 50%;
+    background-size: 200% 200%;
+    animation: electricPulse 3s ease-in-out infinite;
+    z-index: -1;
     pointer-events: none;
+}
+            
+.badge-glow-square {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+}
+
+.badge-glow-square::before {
+    content: '';
+    position: absolute;
+    inset: -3px; 
+    border-radius: 6px;
+    background: radial-gradient(color, 
+        rgba(0,180,216,0.4) 0%, 
+        transparent 80%
+    );
+    animation: electricPulse 3s ease-in-out infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Ensure the image itself doesn't get clipped into a circle */
+.img-square {
+    border-radius: 6px !important;
+    object-fit: cover;
 }
 
 .badge-label {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #C49A60;
+    color: #E0E0E0;
     margin-top: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -190,50 +226,50 @@ section[data-testid="stSidebar"] * { color: #D4B896 !important; }
 }
 .badge-status-earned {
     font-size: 0.72rem;
-    color: #5DB075;
+    color: #48BB78;
     font-weight: 700;
     margin-top: 0.15rem;
 }
 .badge-status-locked {
     font-size: 0.72rem;
-    color: #4A3A30;
+    color: #6B7280;
     font-weight: 600;
     margin-top: 0.15rem;
 }
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #120D06;
+    background-color: #16213E;
     border-radius: 10px;
     padding: 4px;
 }
 .stTabs [data-baseweb="tab"] {
     font-family: 'Lato', sans-serif;
     font-weight: 700;
-    color: #A07850 !important;
+    color: #6B7280 !important;
     border-radius: 8px;
 }
 .stTabs [aria-selected="true"] {
-    background-color: #3A2510 !important;
-    color: #F5D9A8 !important;
+    background-color: #0F3460 !important;
+    color: #E0E0E0 !important;
 }
 .stTabs [data-baseweb="tab-highlight"] {
-    background-color: #C47A30 !important;
+    background-color: #00B4D8 !important;
 }
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div {
-    background-color: #221508 !important;
-    border-color: #5A3820 !important;
-    color: #F0E6D3 !important;
+    background-color: #16213E !important;
+    border-color: #0F3460 !important;
+    color: #E0E0E0 !important;
 }
-p, li, span, label { color: #D4B896; }
+p, li, span, label { color: #E0E0E0; }
 h1, h2, h3, h4 {
-    color: #F5D9A8 !important;
+    color: #E0E0E0 !important;
     font-family: 'Playfair Display', serif;
 }
-hr { border-color: #3A2510; }
+hr { border-color: #0F3460; }
 .book-cover-placeholder {
     width: 100px;
     height: 150px;
-    background: linear-gradient(135deg, #3A2510, #5A3820);
+    background: linear-gradient(135deg, #16213E, #0F3460);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -244,10 +280,10 @@ hr { border-color: #3A2510; }
 """, unsafe_allow_html=True)
 
 # ── Plot theme ────────────────────────────────────────────────────────────────
-PLOT_BG  = "#1A1209"
-FONT_CLR = "#EEF5DB"
-GRID_CLR = "#FE5F55"
-ACCENT   = "#F0B67F"
+PLOT_BG  = "#1A1A2E"
+FONT_CLR = "#E0E0E0"
+GRID_CLR = "#EDE8E0"
+ACCENT   = "#00B4D8"
 
 
 
@@ -256,11 +292,11 @@ def dark_layout(**extra):
         plot_bgcolor=PLOT_BG,
         paper_bgcolor=PLOT_BG,
         font=dict(family="Lato", color=FONT_CLR),
-        title_font=dict(family="Playfair Display", color="#F5D9A8", size=18),
+        title_font=dict(family="Playfair Display", color=FONT_CLR, size=18),
         xaxis=dict(gridcolor=GRID_CLR, color=FONT_CLR, linecolor=GRID_CLR),
         yaxis=dict(gridcolor=GRID_CLR, color=FONT_CLR, linecolor=GRID_CLR),
         coloraxis_showscale=False,
-        legend=dict(bgcolor="#221508", font=dict(color=FONT_CLR)),
+        legend=dict(bgcolor=PLOT_BG, font=dict(color=FONT_CLR)),
     )
     base.update(extra)
     return base
@@ -310,40 +346,54 @@ def svg_to_b64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def load_badge(badge_id, earned=True, size=140):
+def load_badge(badge_id, earned=True, size=140, shape="circle"):
     for ext, mime in [("svg", "image/svg+xml"), ("png", "image/png")]:
         p = ASSETS_DIR / f"{badge_id}.{ext}"
         if p.exists():
             with open(p, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
             delay = abs(hash(badge_id)) % 600
-            css = "badge-img-earned" if earned else "badge-img-locked"
-            img = f'<img src="data:{mime};base64,{b64}" width="{size}" class="{css}" style="animation-delay:{delay}ms"/>'
+            
+            # Determine classes based on shape
+            css_main = "badge-img-earned" if earned else "badge-img-locked"
+            if shape == "square":
+                css_main += " img-square"
+                glow_class = "badge-glow-square"
+            else:
+                glow_class = "badge-glow"
+
+            img = f'<img src="data:{mime};base64,{b64}" width="{size}" class="{css_main}" style="animation-delay:{delay}ms"/>'
+            
             if earned:
-                return f'<span class="badge-glow">{img}</span>'
+                return f'<span class="{glow_class}">{img}</span>'
             return img
-    fallback_icon = "🔒" if not earned else "🏅"
-    return f'<div style="width:{size}px;height:{size}px;background:#221508;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:0.3">{fallback_icon}</div>'
+            
+    # Fallback remains the same
+    icon_name = "lock" if not earned else "military_tech"
+    fallback_icon = f'<span class="material-icons" style="font-size: 48px; color: #E53E3E;">{icon_name}</span>'
+    return f'<div style="width:{size}px;height:{size}px;background:#EDE8E0;border-radius:{"4px" if shape=="square" else "50%"};display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:0.5">{fallback_icon}</div>'
 
 # ── OpenLibrary lookup ────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def fetch_book_info(isbn: str):
-    """Return (title, cover_url) from OpenLibrary, or (None, None)."""
     try:
         url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
         with urllib.request.urlopen(url, timeout=6) as resp:
             data = json.loads(resp.read().decode())
         key  = f"ISBN:{isbn}"
         if key not in data:
-            return None, None
+            return None, None, None # Added third None for author
         book      = data[key]
         title     = book.get("title")
-        author    = book.get("author")
+        # Extract author name
+        authors_list = book.get("authors", [])
+        author_name = authors_list[0].get("name") if authors_list else "Unknown Author"
+        
         covers    = book.get("cover", {})
         cover_url = covers.get("large") or covers.get("medium") or covers.get("small")
-        return title, author, cover_url
+        return title, cover_url, author_name
     except Exception:
-        return None, None
+        return None, None, None
 
 # ── Load CSVs ─────────────────────────────────────────────────────────────────
 def load_from_data_folder():
@@ -392,43 +442,38 @@ st.session_state.months = load_from_data_folder()
 
 for data in st.session_state.months.values():
     if data.get("isbn"):
-        title, author, cover_url  = fetch_book_info(data["isbn"])
+        title, cover_url, author = fetch_book_info(data["isbn"])
         data["book"]      = title or f"ISBN {data['isbn']}"
-        data["author"] = author or 'None'
         data["cover_url"] = cover_url
+        data["author"]    = author or "Unknown Author"
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 📚 KrachBooks")
+    st.markdown('<div class="main-header">KrachBooks <span class="material-icons" style="font-size: 3rem; color: #E53E3E;">auto_stories</span></div>', unsafe_allow_html=True)
     st.markdown("---")
     if st.session_state.months:
-        st.markdown("### 📅 Months loaded")
+        st.markdown('<div class="section-title"><span class="material-icons">calendar_month</span>Months Loaded</div>', unsafe_allow_html=True)
         for m, d in st.session_state.months.items():
             st.markdown(f"- **{m}** — _{d['book']}_")
     else:
-        st.info("No CSVs in `/data`.\nName files like:\n`2025-01_9781234567890.csv`")
-    st.markdown("---")
-    st.markdown("### 📁 Data folder")
-    st.code(str(DATA_DIR), language=None)
-    st.caption("Drop CSVs here and refresh.")
+        st.info("No CSVs in `/data`.\nName files like:\n`2025-01_[isbn].csv`")
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.markdown('<div class="main-header">KrachBooks 📚</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">KrachBooks <span class="material-icons" style="font-size: 3rem; color: #E53E3E;">auto_stories</span></div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">some krached stats, and badges!</div>', unsafe_allow_html=True)
-st.markdown("---")
 
 if not st.session_state.months:
     st.warning(f"No CSV files found in `{DATA_DIR}`. Add files and refresh!")
     st.stop()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tabs = st.tabs(["📊 Dashboard", "📅 By Month", "💬 Quotes", "🎖️ My Badges"])
+tabs = st.tabs(["Dashboard", "By Month", "Quotes", "My Badges"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[0]:
-    st.markdown('<div class="section-title">Club Overview</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><span class="material-icons">leaderboard</span> Club Overview</div>', unsafe_allow_html=True)
 
     rows = []
     for month, data in st.session_state.months.items():
@@ -440,13 +485,14 @@ with tabs[0]:
             "Month":          month,
             "Book":           data["book"],
             "Active Members": n_total,
+            "Author":         data.get("author", "Unknown"),
             "Finished":       n_finished,
             "% Finished":     round(n_finished / n_total * 100, 1) if n_total > 0 else 0,
             "Avg Rating":     round(avg_rating, 2) if not pd.isna(avg_rating) else None,
         })
 
     summary        = pd.DataFrame(rows)
-    total_active   = summary["Active Members"].sum()
+    total_active   = 17
     overall_avg    = summary["Avg Rating"].dropna().mean()
     best_row       = summary.loc[summary["Avg Rating"].idxmax()] if summary["Avg Rating"].notna().any() else None
 
@@ -468,43 +514,58 @@ with tabs[0]:
             <div class="stat-label">Overall Avg Rating</div>
         </div>""", unsafe_allow_html=True)
     with c4:
-        best = best_row["Book"] if best_row is not None else "—"
-        best_short = best[:18] + "…" if len(best) > 18 else best
+        best_title = best_row["Book"] if best_row is not None else "—"
+        best_author = best_row["Author"] if best_row is not None else ""
+        title_short = best_title[:18] + "…" if len(best_title) > 18 else best_title
+    
         st.markdown(f"""<div class="stat-card">
-            <div class="stat-number" style="font-size:1.6rem">{best_short}</div>
-            <div class="stat-label">Highest Rated Book</div>
+            <div class="stat-number" style="font-size:2.4rem">{title_short}</div>
+            <div class="stat-label">{best_author}</div> 
         </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col_left, col_right = st.columns(2)
 
     with col_left:
-        if summary["Avg Rating"].notna().any():
-            fig = px.bar(
-                summary.dropna(subset=["Avg Rating"]),
-                x="Month", y="Avg Rating",
-                text="Avg Rating",
-                color="Avg Rating",
-                color_continuous_scale=["#5A3820", "#C47A30", "#F5D9A8"],
-                title="⭐ Average Rating by Month",
-            )
-            fig.update_traces(texttemplate="%{text:.1f}", textposition="outside",
-                              textfont_color=FONT_CLR)
-            fig.update_layout(**dark_layout(yaxis=dict(range=[0, 6], gridcolor=GRID_CLR, color=FONT_CLR)))
-            st.plotly_chart(fig, use_container_width=True)
-
-    with col_right:
+        # Keeping Completion Rate as a Bar Chart for clear comparison
         fig2 = px.bar(
             summary, x="Month", y="% Finished",
             text="% Finished",
             color="% Finished",
-            color_continuous_scale=["#1A3A20", "#2E7D32", "#A5D6A7"],
-            title="✅ Completion Rate by Month (%)",
+            color_continuous_scale=["#16213E", "#00B4D8"], # Dark navy to Bright blue
+            title="Completion Rate by Month",
         )
         fig2.update_traces(texttemplate="%{text}%", textposition="outside",
-                           textfont_color=FONT_CLR)
-        fig2.update_layout(**dark_layout(yaxis=dict(range=[0, 110], gridcolor=GRID_CLR, color=FONT_CLR)))
-        st.plotly_chart(fig2, use_container_width=True)
+                            textfont_color="#E0E0E0")
+        fig2.update_layout(**dark_layout(yaxis=dict(range=[0, 110])))
+        st.plotly_chart(fig2, use_container_width=True)  
+
+    with col_right:
+        # Aggregate ALL ratings across all months
+        all_ratings = []
+        for m_data in st.session_state.months.values():
+            m_ratings = m_data["df"]["_rating"].dropna().tolist()
+            all_ratings.extend(m_ratings)
+        
+        if all_ratings:
+            # Round ratings to nearest whole star for the breakdown
+            rating_df = pd.DataFrame({"Stars": [f"{int(round(r))} Star" for r in all_ratings]})
+            breakdown = rating_df["Stars"].value_counts().reset_index()
+            breakdown.columns = ["Rating", "Count"]
+            breakdown = breakdown.sort_values("Rating", ascending=False)
+
+            midnight_colors = ["#00B4D8", "#90E0EF", "#F5D9A8", "#0F3460", "#16213E"]
+            
+            fig = px.pie(
+                breakdown,
+                names="Rating", 
+                values="Count",
+                title="Ratings Breakdown",
+                color_discrete_sequence=midnight_colors
+            )
+            fig.update_traces(textposition='inside', textinfo='percent+label')
+            fig.update_layout(**dark_layout())
+            st.plotly_chart(fig, use_container_width=True)
 
     st.markdown('<div class="section-title">Month Summary</div>', unsafe_allow_html=True)
     disp = summary.copy()
@@ -516,7 +577,7 @@ with tabs[0]:
 # TAB 2 — BY MONTH
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[1]:
-    st.markdown('<div class="section-title">Monthly Deep Dive</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><span class="material-icons">calendar_month</span> Monthly Deep Dive</div>', unsafe_allow_html=True)
     selected_month = st.selectbox("Select a month", list(st.session_state.months.keys()))
 
     if selected_month:
@@ -539,7 +600,7 @@ with tabs[1]:
                 st.markdown('<div class="book-cover-placeholder">📖</div>', unsafe_allow_html=True)
         with info_col:
             st.markdown(f"### {book}")
-            st.markdown(f"{author}")
+            st.markdown(f"**By: {author}**")
             st.markdown(f"**{selected_month}** &nbsp;|&nbsp; {n_finished}/{n_total} members finished &nbsp;|&nbsp; {avg_str} avg")
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -578,10 +639,15 @@ with tabs[1]:
             if fmt_col:
                 fmt_counts = df[fmt_col].value_counts().reset_index()
                 fmt_counts.columns = ["Format", "Count"]
+                # Midnight Ink Palette: Blues, Deep Navy, and Soft Gold
+                midnight_colors = ["#00B4D8", "#0F3460", "#16213E", "#F5D9A8", "#90E0EF"]
+                
                 fig2 = px.pie(fmt_counts, names="Format", values="Count",
-                              title="📖 Format Breakdown",
-                              color_discrete_sequence=["#C47A30","#8B5E3C","#E8A050","#5A3820","#F5D9A8"])
-                fig2.update_traces(textfont_color="#1A1209")
+                            title="Format Breakdown",
+                            color_discrete_sequence=midnight_colors)
+                
+                fig2.update_traces(textposition='inside', textinfo='percent+label', 
+                                marker=dict(line=dict(color='#1A1A2E', width=2)))
                 fig2.update_layout(**dark_layout())
                 st.plotly_chart(fig2, use_container_width=True)
 
@@ -589,7 +655,7 @@ with tabs[1]:
 # TAB 3 — QUOTES
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[2]:
-    st.markdown('<div class="section-title">💬 Favourite Quotes</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><span class="material-icons">format_quote</span> Favourite Quotes</div>', unsafe_allow_html=True)
 
     for month, data in st.session_state.months.items():
         df        = data["df"]
@@ -611,28 +677,52 @@ with tabs[2]:
                 st.caption("No quotes shared for this month.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — MY BADGES
+# TAB 4 — MY BADGES 
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[3]:
-    st.markdown('<div class="section-title">🎖️ My Badges</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"><span class="material-icons">workspace_premium</span> My Badges</div>', unsafe_allow_html=True)
     st.markdown("Enter your name/tag below to see which badges you've earned!")
 
-    member_name = st.text_input("Your name or tag", placeholder="e.g. Alice")
+    member_name = st.text_input("Your name or tag", placeholder="e.g. Krached Keval")
 
     if member_name:
-        member_clean    = member_name.strip().lower()
-        all_months      = list(st.session_state.months.keys())
+        member_clean = member_name.strip().lower()
+        all_months = list(st.session_state.months.keys())
+        
+        # Data gathering for logic
         finished_months = []
+        member_speeds = []
+        months_2025 = [m for m in all_months if "2025" in m]
+        months_2026 = [m for m in all_months if "2026" in m]
+        
+        finished_2025 = 0
+        finished_2026 = 0
 
         for month, data in st.session_state.months.items():
-            df   = data["df"]
-            rows = df[df["_name"].str.lower() == member_clean]
-            if not rows.empty and rows["_finished"].any():
+            df = data["df"]
+            # Look for the specific member
+            m_rows = df[df["_name"].str.lower() == member_clean]
+            
+            if not m_rows.empty and m_rows["_finished"].any():
                 finished_months.append(month)
+                
+                # Check for Year-specific counts
+                if "2025" in month: finished_2025 += 1
+                if "2026" in month: finished_2026 += 1
+                
+                # Check for Speed Demon (less than 3 days)
+                days_col = match_col(df, "days")
+                if days_col:
+                    try:
+                        days_val = float(m_rows[days_col].iloc[0])
+                        member_speeds.append(days_val)
+                    except: pass
 
         n_finished = len(finished_months)
-        n_total    = len(all_months)
+        n_total = len(all_months)
+        fastest_read = min(member_speeds) if member_speeds else 999
 
+        # Stats Cards
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(f"""<div class="stat-card">
@@ -646,46 +736,56 @@ with tabs[3]:
                 <div class="stat-label">Completion Rate</div>
             </div>""", unsafe_allow_html=True)
 
-        st.markdown("**Your Badge Collection**")
+        # --- Section 1: Special Badges ---
+        # st.markdown("### <span class="material-icons" style='vertical-align:bottom'>stars</span> Special Achievements")
+        st.markdown('<div class="section-title"><span class="material-icons">stars</span> Special Achievements</div>', unsafe_allow_html=True)
+        curators_list = ["lightspeed", "pranjal", "nitarek", "kd", "ani", "potato365", "smrithi", ]
+        
+        special_badges = [
+            ("champion_2025", "2025 Completely Krached", finished_2025 >= len(months_2025) and len(months_2025) > 0),
+            ("champion_2026", "2026 Completely Krached", finished_2026 >= len(months_2026) and len(months_2026) > 0),
+            ("curator", "Trusted Curator", member_clean in curators_list),
+            ("speed_demon", "Speed Demon (< 3 days)", fastest_read < 3),
+            ("loyalist", "Loyal Krachhead (12+ Months)", n_finished >= 12),
+            ("bookworm", "Bookworm (5+ books)", n_finished >= 5),
+        ]
 
-        badge_defs = [
+        # Display Special Badges in a grid
+        cols_per_row_special = 3
+        for i in range(0, len(special_badges), cols_per_row_special):
+            batch = special_badges[i : i + cols_per_row_special]
+            cols = st.columns(cols_per_row_special)
+            for ci, (badge_id, label, earned) in enumerate(batch):
+                with cols[ci]:
+                    img_html = load_badge(badge_id, earned=earned, size=150)
+                    status_html = '<span class="badge-status-earned"> ★ Earned!</span>' if earned else '<span class="badge-status-locked">🔒 Locked</span>'
+                    st.markdown(f"""<div class="badge-wrap">
+                        <div>{img_html}</div>
+                        <div class="badge-label">{label}</div>
+                        {status_html}
+                    </div>""", unsafe_allow_html=True)
+
+        # --- Section 2: Monthly Badges ---
+        st.markdown('<div class="section-title"><span class="material-icons">calendar_today</span> Monthly Collection</div>', unsafe_allow_html=True)
+        # st.markdown("### <span class="material-icons" style='vertical-align:bottom'>calendar_today</span> Monthly Collection")
+        month_badges = [
             (f"book_{i}", st.session_state.months[month]["book"], month in finished_months)
-            for i, month in enumerate(all_months[:10], 1)
+            for i, month in enumerate(all_months, 1)
         ]
         
-        special = [
-            ("bookworm",
-             "Bookworm (5+ books)" if n_finished >= 5 else f"Bookworm — {5 - n_finished} more!",
-             n_finished >= 5),
-            ("champion",
-             "Club Champion 👑" if (n_finished >= n_total > 0) else f"Finish all {n_total}!",
-             n_finished >= n_total > 0),
-        ]
-        all_badges   = badge_defs + special
-        cols_per_row = 4  # fewer columns = bigger badges have more breathing room
-
-        for row_start in range(0, len(all_badges), cols_per_row):
-            row_badges = all_badges[row_start:row_start + cols_per_row]
+        cols_per_row = 4
+        for row_start in range(0, len(month_badges), cols_per_row):
+            row_slice = month_badges[row_start : row_start + cols_per_row]
             cols = st.columns(cols_per_row)
-            for ci, (badge_id, label, earned) in enumerate(row_badges):
+            for ci, (badge_id, label, earned) in enumerate(row_slice):
                 with cols[ci]:
-                    # Stagger entrance animation per badge position
-                    global_idx = row_start + ci
-                    entrance_delay = global_idx * 80  # ms
-                    img_html = load_badge(badge_id, earned=earned, size=140)
-                    status_html = (
-                        '<span class="badge-status-earned">✅ Earned!</span>'
-                        if earned else
-                        '<span class="badge-status-locked">🔒 Locked</span>'
-                    )
-                    st.markdown(
-                        f"""<div class="badge-wrap" style="animation-delay:{entrance_delay}ms">
-                            <div style="animation-delay:{entrance_delay}ms">{img_html}</div>
-                            <div class="badge-label">{label[:26]}</div>
-                            {status_html}
-                        </div>""",
-                        unsafe_allow_html=True,
-                    )
+                    img_html = load_badge(badge_id, earned=earned, size=150, shape="square")
+                    status_html = '<span class="badge-status-earned"> ★ Earned!</span>' if earned else '<span class="badge-status-locked">🔒 Locked</span>'
+                    st.markdown(f"""<div class="badge-wrap">
+                        <div>{img_html}</div>
+                        <div class="badge-label">{label[:26]}</div>
+                        {status_html}
+                    </div>""", unsafe_allow_html=True)
 
-        if n_finished == 0:
-            st.info(f"No finished books found for **{member_name}**. Make sure your name matches exactly what you used in the form.")
+        if n_finished == 0 and member_clean not in curators_list:
+            st.info(f"No finished books found for **{member_name}**. Ensure your name matches the form exactly!")
