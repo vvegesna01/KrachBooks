@@ -7,9 +7,8 @@ A dashboard for my book club!
 
 
 # Badge System
-Here's how the badge system works:
-Where images live
-All badge images go in the assets/ folder next to app.py. Each file must be named exactly matching the badge ID used in code, as an SVG (or you can tweak the load_badge function to also accept PNG):
+
+All badge images go in the assets/ folder next to app.py. Each file must be named exactly matching the badge ID used in code (it takes png and svg also)
 KrachBooks/
 ├── app.py
 ├── assets/
@@ -21,14 +20,16 @@ KrachBooks/
 │   └── champion.svg    ← special: finish ALL books
 
 
-How badges are defined
-There are two types:
+# Two types of Badges
+
 Book badges — one per month, auto-generated from your loaded CSVs. The code in the My Badges tab does this:
 pythonbadge_defs = [
     (f"book_{i}", st.session_state.months[month]["book"], month in finished_months)
     for i, month in enumerate(all_months[:10], 1)
 ]
 So month 1 → book_1.svg, month 2 → book_2.svg, etc. A member earns it by having _finished = True in that month's CSV. The cap is currently 10 months — raise that number if your club goes longer.
+
+
 Special badges — defined in this list right below:
 pythonspecial = [
     ("bookworm",
@@ -55,12 +56,3 @@ python
 n_finished      # how many books this member finished
 n_total         # total months in the club
 finished_months # list of month names they completed
-
-# You could also compute:
-all_ratings = [
-    st.session_state.months[m]["df"]
-    ...  # filter by member name, pull _rating
-]
-avg_given = ...   # their average rating across all books
-gave_quotes = ... # whether they ever shared a quote
-This lets you define badges like "reviewed every book", "rated everything below 3 stars", "first to finish", etc. — as long as the data is in the CSV.
