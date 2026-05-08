@@ -193,7 +193,7 @@ section[data-testid="stSidebar"] {
 .stSelectbox div[data-baseweb="select"] > div {
     background: rgba(36, 106, 115, 0.1) !important;
 
-    color: var(--text) !important;
+    color: var(--bg-secondary) !important;
 
     border: 1px solid var(--border) !important;
 
@@ -280,6 +280,50 @@ section[data-testid="stSidebar"] {
     font-size: 3rem;
 
     color: var(--text-muted);
+}
+
+/* 1. Define the Shimmer Keyframes */
+@keyframes one-time-shimmer {
+    0% {
+        left: -150%;
+    }
+    100% {
+        left: 150%;
+    }
+}
+
+/* 2. Prepare the container for the shimmer */
+.badge-wrap div:first-child {
+    position: relative;
+    overflow: hidden; /* Keeps the shimmer inside the badge shape */
+    display: inline-block;
+    border-radius: 50%; /* Default to circle */
+}
+
+/* Adjust for square badges if the parent has .img-square */
+.badge-wrap:has(.img-square) div:first-child {
+    border-radius: 20px !important;
+}
+
+/* 3. The Shimmer Overlay */
+.badge-img-earned + .shimmer-overlay, /* If using a sibling */
+.badge-wrap div:first-child::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(243, 223, 193, 0.4) 50%, /* Champagne Mist shimmer */
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    /* The animation: name | duration | timing | delay | iteration | direction */
+    animation: one-time-shimmer 1.5s ease-out 0.5s 1 forwards;
+    pointer-events: none; /* User can still click through it */
 }
 
 /* Scrollbar */
