@@ -843,12 +843,12 @@ with tabs[3]:
 
         curators_list = ["lightspeed", "pranjal", "nitarek", "kd", "ani", "potato365", "smrithi"]
         special_badges = [
+            ("curator",       "Trusted Curator",
+             member_clean in curators_list),
             ("champion_2025", "2025 Completely Krached",
              finished_2025 >= len(months_2025) and len(months_2025) > 0),
             ("champion_2026", "2026 Completely Krached",
              finished_2026 >= len(months_2026) and len(months_2026) > 0),
-            ("curator",       "Trusted Curator",
-             member_clean in curators_list),
             ("speed_demon",   "Speed Demon (< 3 days)",
              fastest_read < 3),
             ("loyalist",      "Loyal Krachhead (12+)",

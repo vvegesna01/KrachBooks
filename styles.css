@@ -193,7 +193,7 @@ section[data-testid="stSidebar"] {
 .stSelectbox div[data-baseweb="select"] > div {
     background: rgba(36, 106, 115, 0.1) !important;
 
-    color: var(--bg-secondary) !important;
+    color: var(--text) !important;
 
     border: 1px solid var(--border) !important;
 
@@ -256,7 +256,7 @@ section[data-testid="stSidebar"] {
 }
 
 .img-square {
-    border-radius: 18px !important;
+    border-radius: 20px !important;
 }
 
 .badge-placeholder {
@@ -282,48 +282,54 @@ section[data-testid="stSidebar"] {
     color: var(--text-muted);
 }
 
-/* 1. Define the Shimmer Keyframes */
-@keyframes one-time-shimmer {
+/* 1. Updated Keyframes: Shimmer happens fast, then waits */
+@keyframes repeating-shimmer {
     0% {
         left: -150%;
     }
+    15% {
+        left: 150%; /* Shimmer finishes its move by 15% of the total time */
+    }
     100% {
-        left: 150%;
+        left: 150%; /* It stays off-screen for the remaining 85% of the cycle */
     }
 }
 
-/* 2. Prepare the container for the shimmer */
+/* 2. Badge Container Setup */
 .badge-wrap div:first-child {
     position: relative;
-    overflow: hidden; /* Keeps the shimmer inside the badge shape */
+    overflow: hidden;
     display: inline-block;
-    border-radius: 50%; /* Default to circle */
+    border-radius: 50%;
+    /* Ensure the background doesn't leak during the shimmer */
+    background: transparent; 
 }
 
-/* Adjust for square badges if the parent has .img-square */
 .badge-wrap:has(.img-square) div:first-child {
-    border-radius: 20px !important;
+    border-radius: 18px !important;
 }
 
-/* 3. The Shimmer Overlay */
-.badge-img-earned + .shimmer-overlay, /* If using a sibling */
+/* 3. The Infinite Shimmer Overlay */
 .badge-wrap div:first-child::after {
     content: "";
     position: absolute;
     top: 0;
     left: -150%;
-    width: 50%;
+    width: 60%;
     height: 100%;
     background: linear-gradient(
         to right,
         transparent 0%,
-        rgba(243, 223, 193, 0.4) 50%, /* Champagne Mist shimmer */
+        rgba(243, 223, 193, 0.3) 50%, /* Champagne Mist at 30% opacity */
         transparent 100%
     );
-    transform: skewX(-25deg);
-    /* The animation: name | duration | timing | delay | iteration | direction */
-    animation: one-time-shimmer 1.5s ease-out 0.5s 1 forwards;
-    pointer-events: none; /* User can still click through it */
+    transform: skewX(-20deg);
+    
+    /* 10s total cycle, repeating forever */
+    animation: repeating-shimmer 10s linear infinite;
+    
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* Scrollbar */
