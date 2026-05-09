@@ -364,160 +364,205 @@ with tabs[0]:
     )
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BOOKS
+# BOOKS — Cover Wall + Deep Dive
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[1]:
     st.markdown(
         """
         <div class="section-title">
-            <span class="material-icons">
-                calendar_month
-            </span>
-            Monthly Deep Dive
+            <span class="material-icons">auto_stories</span>
+            Book Cover Wall
         </div>
+        <p style="color:#DDBEA8; font-size:0.93em; margin-bottom:1.2rem;">
+            Click a cover to explore that month's stats.
+        </p>
         """,
         unsafe_allow_html=True,
     )
 
-    selected_month = st.selectbox(
-        "Select a month",
-        list(st.session_state.months.keys()),
+    # ── initialise selection state ────────────────────────────────────────────
+    if "selected_month" not in st.session_state:
+        st.session_state.selected_month = None
+
+    # ── cover wall ────────────────────────────────────────────────────────────
+    month_list = list(st.session_state.months.keys())
+    COVERS_PER_ROW = 6
+
+    # Collapse the wall when a book is selected, expand when none selected
+    wall_expanded = st.session_state.selected_month is None
+    wall_label = (
+        "All Books"
+        if wall_expanded
+        else f"All Books  —  click to browse or change selection"
     )
 
-    if selected_month:
-        data = st.session_state.months[selected_month]
+    with st.expander(wall_label, expanded=wall_expanded):
+        for row_start in range(0, len(month_list), COVERS_PER_ROW):
+            row_months = month_list[row_start : row_start + COVERS_PER_ROW]
+            cols = st.columns(COVERS_PER_ROW)
 
+            for ci, month in enumerate(row_months):
+                mdata = st.session_state.months[month]
+                cover_url = mdata.get("cover_url")
+                is_selected = st.session_state.selected_month == month
+
+                with cols[ci]:
+                    border_style = (
+                        "3px solid #368F8B" if is_selected else "3px solid transparent"
+                    )
+
+                    if cover_url:
+                        st.markdown(
+                            f"""
+                            <div style="
+                                border: {border_style};
+                                border-radius: 8px;
+                                overflow: hidden;
+                                margin-bottom: 2px;
+                                max-width: 200px;
+                                height: 300px;
+                                margin-left: auto;
+                                margin-right: auto;
+                            ">
+                                <img src="{cover_url}" style="
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    display: block;
+                                "/>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+                    else:
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background: linear-gradient(135deg, #1E1636, #246A73);
+                                border-radius: 6px;
+                                aspect-ratio: 2/3;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 0.5rem;
+                                text-align: center;
+                                font-family: 'Fraunces', serif;
+                                font-size: 0.7rem;
+                                color: #F3DFC1;
+                                min-height: 150px;
+                            ">
+                                <br>{mdata['book']}
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+                    st.caption(month)
+                    btn_label = "✓ Selected" if is_selected else "View Stats"
+                    if st.button(btn_label, key=f"cover_btn_{month}", use_container_width=True):
+                        if st.session_state.selected_month == month:
+                            st.session_state.selected_month = None
+                        else:
+                            st.session_state.selected_month = month
+                        st.rerun()
+
+    # ── deep dive panel ───────────────────────────────────────────────────────
+    selected_month = st.session_state.selected_month
+
+    if selected_month and selected_month in st.session_state.months:
+        st.markdown(
+            f"""
+            <hr style="margin: 2rem 0 1.5rem;">
+            <div class="section-title">
+                <span class="material-icons">leaderboard</span>
+                {selected_month} — Deep Dive
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        data = st.session_state.months[selected_month]
         df = data["df"]
         book = data["book"]
-
         author = data.get("author")
         cover_url = data.get("cover_url")
 
         n_total = len(df)
         n_finished = int(df["_finished"].sum())
-
         avg_rating = df["_rating"].dropna().mean()
-
         avg_str = (
-            f"{avg_rating:.1f} ⭐"
-            if not pd.isna(avg_rating)
-            else "—"
+            f"{avg_rating:.1f} ⭐" if not pd.isna(avg_rating) else "—"
         )
 
+        # Book header
         cover_col, info_col = st.columns([1, 4])
-
         with cover_col:
             if cover_url:
-                st.image(cover_url, width=250)
-
+                st.image(cover_url, width=200)
         with info_col:
             st.markdown(f"## {book}")
-
             if author:
                 st.markdown(f"**By: {author}**")
-
             st.markdown(
-                f"""
-                **{selected_month}**
-                • {n_finished}/{n_total} finished
-                • {avg_str} average rating
-                """
+                f"**{selected_month}** • {n_finished}/{n_total} finished • {avg_str} average rating"
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
 
+        # Stat cards
         c1, c2, c3 = st.columns(3)
-
         with c1:
             st.markdown(
-                f"""
-                <div class="stat-card">
-                    <div class="stat-number">
-                        {n_total}
-                    </div>
-                    <div class="stat-label">
-                        Responses
-                    </div>
-                </div>
-                """,
+                f"""<div class="stat-card">
+                    <div class="stat-number">{n_total}</div>
+                    <div class="stat-label">Responses</div>
+                </div>""",
                 unsafe_allow_html=True,
             )
-
         with c2:
             st.markdown(
-                f"""
-                <div class="stat-card">
-                    <div class="stat-number">
-                        {n_finished}
-                    </div>
-                    <div class="stat-label">
-                        Members Finished
-                    </div>
-                </div>
-                """,
+                f"""<div class="stat-card">
+                    <div class="stat-number">{n_finished}</div>
+                    <div class="stat-label">Members Finished</div>
+                </div>""",
                 unsafe_allow_html=True,
             )
-
         with c3:
             st.markdown(
-                f"""
-                <div class="stat-card">
-                    <div class="stat-number">
-                        {avg_str}
-                    </div>
-                    <div class="stat-label">
-                        Avg Rating
-                    </div>
-                </div>
-                """,
+                f"""<div class="stat-card">
+                    <div class="stat-number">{avg_str}</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>""",
                 unsafe_allow_html=True,
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
 
+        # Charts
         left, right = st.columns(2)
-
         with left:
             ratings = df["_rating"].dropna()
-
             if not ratings.empty:
                 fig_hist = px.histogram(
                     ratings,
                     x=ratings,
                     nbins=10,
                     title="Rating Distribution",
-                    color_discrete_sequence=[
-                        THEME["accent"]
-                    ],
+                    color_discrete_sequence=[THEME["accent"]],
                 )
-
                 fig_hist.update_layout(
-                    **plot_layout(
-                        xaxis_title="Rating",
-                        yaxis_title="Count",
-                    )
+                    **plot_layout(xaxis_title="Rating", yaxis_title="Count")
                 )
-
-                st.plotly_chart(
-                    fig_hist,
-                    use_container_width=True,
-                )
+                st.plotly_chart(fig_hist, use_container_width=True)
 
         with right:
             fmt_col = match_col(df, "format")
-
             if fmt_col:
-                fmt_counts = (
-                    df[fmt_col]
-                    .value_counts()
-                    .reset_index()
-                )
-
-                fmt_counts.columns = [
-                    "Format",
-                    "Count",
-                ]
-
+                fmt_counts = df[fmt_col].value_counts().reset_index()
+                fmt_counts.columns = ["Format", "Count"]
                 fig_fmt = px.pie(
                     fmt_counts,
                     names="Format",
@@ -525,15 +570,8 @@ with tabs[1]:
                     title="Format Breakdown",
                     color_discrete_sequence=THEME["palette"],
                 )
-
-                fig_fmt.update_layout(
-                    **plot_layout()
-                )
-
-                st.plotly_chart(
-                    fig_fmt,
-                    use_container_width=True,
-                )
+                fig_fmt.update_layout(**plot_layout())
+                st.plotly_chart(fig_fmt, use_container_width=True)
 
         # ── Book Awards ───────────────────────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
@@ -547,15 +585,15 @@ with tabs[1]:
         book_stats = {}
         for m, mdata in st.session_state.months.items():
             mdf = mdata["df"]
-            mn_total    = len(mdf)
-            mn_finished = int(mdf["_finished"].sum())
+            mn_total     = len(mdf)
+            mn_finished  = int(mdf["_finished"].sum())
             mn_abandoned = mn_total - mn_finished
-            ratings = mdf["_rating"].dropna()
-            mn_avg_rating  = ratings.mean()  if not ratings.empty else None
-            mn_rating_var  = ratings.var()   if len(ratings) > 1  else None
+            ratings      = mdf["_rating"].dropna()
+            mn_avg_rating = ratings.mean() if not ratings.empty else None
+            mn_rating_var = ratings.var()  if len(ratings) > 1  else None
             book_stats[m] = {
-                "book":      mdata["book"],
-                "abandoned": mn_abandoned,
+                "book":       mdata["book"],
+                "abandoned":  mn_abandoned,
                 "avg_rating": mn_avg_rating,
                 "rating_var": mn_rating_var,
             }
@@ -568,12 +606,16 @@ with tabs[1]:
             }
             if not candidates:
                 return None
-            return max(candidates, key=candidates.get) if highest else min(candidates, key=candidates.get)
+            return (
+                max(candidates, key=candidates.get)
+                if highest
+                else min(candidates, key=candidates.get)
+            )
 
-        most_abandoned_month  = winner_month("abandoned",   highest=True)
+        most_abandoned_month   = winner_month("abandoned",  highest=True)
         highest_variance_month = winner_month("rating_var", highest=True)
-        most_hated_month      = winner_month("avg_rating",  highest=False)
-        highest_rated_month   = winner_month("avg_rating",  highest=True)
+        most_hated_month       = winner_month("avg_rating", highest=False)
+        highest_rated_month    = winner_month("avg_rating", highest=True)
 
         book_awards = [
             (
@@ -604,7 +646,6 @@ with tabs[1]:
                 selected_month == most_hated_month,
                 book_stats.get(most_hated_month, {}).get("book", "—"),
             ),
-            
         ]
 
         award_cols = st.columns(4)
@@ -891,8 +932,6 @@ with tabs[4]:
                 "CSV export of the Google Form responses and send it to "
                 "<strong style='color:#F3DFC1;'>Keerthana</strong> so the dashboard "
                 "can be updated with the new month's data. "
-                "If you're feeling up to it you can also make a PR to this github repo with the csv file. "
-                "The format is 'YYYY-MM_[ISBN].csv' in 'data/'."
             ),
         },
         {
