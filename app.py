@@ -130,8 +130,15 @@ def is_finished(val):
     if pd.isna(val):
         return False
 
+    lowered = str(val).lower().strip()
+
+    # Exclude "still reading" and similar in-progress statuses first
+    not_finished_phrases = ["still reading", "reading", "in progress", "not finished", "dnf", "did not finish"]
+    if any(phrase in lowered for phrase in not_finished_phrases):
+        return False
+
     return any(
-        w in str(val).lower()
+        w in lowered
         for w in ["yes", "finished", "done", "complete", "read"]
     )
 
@@ -188,7 +195,7 @@ def load_badge(badge_id, earned=True, size=140, shape="circle"):
                 f'width="{size}" class="{css_main}"/>'
             )
 
-    icon_name = "military_tech" if earned else "lock"
+    icon_name = "stars" if earned else "lock"
 
     return f"""
     <div class="badge-placeholder">
@@ -408,7 +415,7 @@ with tabs[0]:
                     {len(summary)}
                 </div>
                 <div class="stat-label">
-                    Months Tracked
+                    Months Active
                 </div>
             </div>
             """,
@@ -716,6 +723,97 @@ with tabs[1]:
                     use_container_width=True,
                 )
 
+        # ── Book Awards ───────────────────────────────────────────────────────
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            '<div class="section-title">'
+            '<span class="material-icons">emoji_events</span> Book Awards</div>',
+            unsafe_allow_html=True,
+        )
+
+        # Compute award winners across all months
+        book_stats = {}
+        for m, mdata in st.session_state.months.items():
+            mdf = mdata["df"]
+            mn_total    = len(mdf)
+            mn_finished = int(mdf["_finished"].sum())
+            mn_abandoned = mn_total - mn_finished
+            ratings = mdf["_rating"].dropna()
+            mn_avg_rating  = ratings.mean()  if not ratings.empty else None
+            mn_rating_var  = ratings.var()   if len(ratings) > 1  else None
+            book_stats[m] = {
+                "book":      mdata["book"],
+                "abandoned": mn_abandoned,
+                "avg_rating": mn_avg_rating,
+                "rating_var": mn_rating_var,
+            }
+
+        def winner_month(stat_key, highest=True):
+            candidates = {
+                m: s[stat_key]
+                for m, s in book_stats.items()
+                if s[stat_key] is not None
+            }
+            if not candidates:
+                return None
+            return max(candidates, key=candidates.get) if highest else min(candidates, key=candidates.get)
+
+        most_abandoned_month  = winner_month("abandoned",   highest=True)
+        highest_variance_month = winner_month("rating_var", highest=True)
+        most_hated_month      = winner_month("avg_rating",  highest=False)
+        highest_rated_month   = winner_month("avg_rating",  highest=True)
+
+        book_awards = [
+            (
+                "most_abandoned",
+                "Most Abandoned",
+                "Highest count of members who didn't finish",
+                selected_month == most_abandoned_month,
+                book_stats.get(most_abandoned_month, {}).get("book", "—"),
+            ),
+            (
+                "club_civil_war",
+                "Club Civil War Award",
+                "Highest rating variance - most divisive book",
+                selected_month == highest_variance_month,
+                book_stats.get(highest_variance_month, {}).get("book", "—"),
+            ),
+            (
+                "most_hated",
+                "Most Hated Book",
+                "Lowest average rating",
+                selected_month == most_hated_month,
+                book_stats.get(most_hated_month, {}).get("book", "—"),
+            ),
+            (
+                "highest_rated",
+                "Highest Rated Book",
+                "Highest average rating",
+                selected_month == highest_rated_month,
+                book_stats.get(highest_rated_month, {}).get("book", "—"),
+            ),
+        ]
+
+        award_cols = st.columns(4)
+        for ci, (badge_id, award_title, award_desc, this_book_wins, current_holder) in enumerate(book_awards):
+            with award_cols[ci]:
+                img_html = load_badge(badge_id, earned=this_book_wins, size=120)
+                if this_book_wins:
+                    card_style = "border: 2px solid #368F8B; border-radius: 12px; padding: 14px; text-align: center; background: #1E1636;"
+                    status = '<div style="color:#368F8B; font-weight:700; margin-top:6px;">★ This book wins!</div>'
+                else:
+                    card_style = "border: 1px solid #246A73; border-radius: 12px; padding: 14px; text-align: center; background: #160F29; opacity: 0.75;"
+                    status = f'<div style="color:#DDBEA8; font-size:0.78em; margin-top:6px;">Current holder:<br><em>{current_holder}</em></div>'
+                st.markdown(
+                    f'<div style="{card_style}">'
+                    f'{img_html}'
+                    f'<div style="font-weight:700; color:#F3DFC1; margin-top:8px;">{award_title}</div>'
+                    f'<div style="font-size:0.78em; color:#DDBEA8; margin-top:4px;">{award_desc}</div>'
+                    f'{status}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
 # ══════════════════════════════════════════════════════════════════════════════
 # QUOTES
 # ══════════════════════════════════════════════════════════════════════════════
@@ -795,29 +893,53 @@ with tabs[3]:
 
         finished_months = []
         member_speeds   = []
+        member_ratings  = []
         finished_2025   = 0
         finished_2026   = 0
 
         for month, data in st.session_state.months.items():
             df     = data["df"]
             m_rows = df[df["_name"].str.lower() == member_clean]
-            if not m_rows.empty and m_rows["_finished"].any():
-                finished_months.append(month)
-                if "2025" in month:
-                    finished_2025 += 1
-                if "2026" in month:
-                    finished_2026 += 1
-                days_col = match_col(df, "days")
-                if days_col:
-                    try:
-                        days_val = float(m_rows[days_col].iloc[0])
-                        member_speeds.append(days_val)
-                    except Exception:
-                        pass
+            if not m_rows.empty:
+                if m_rows["_finished"].any():
+                    finished_months.append(month)
+                    if "2025" in month:
+                        finished_2025 += 1
+                    if "2026" in month:
+                        finished_2026 += 1
+                    days_col = match_col(df, "days")
+                    if days_col:
+                        try:
+                            days_val = float(m_rows[days_col].iloc[0])
+                            member_speeds.append(days_val)
+                        except Exception:
+                            pass
+                # Collect ratings regardless of finished status
+                rating_val = m_rows["_rating"].dropna()
+                if not rating_val.empty:
+                    member_ratings.append(rating_val.iloc[0])
 
         n_finished   = len(finished_months)
         n_total      = len(all_months)
         fastest_read = min(member_speeds) if member_speeds else 999
+        avg_member_rating = sum(member_ratings) / len(member_ratings) if member_ratings else None
+
+        # Compute average ratings for ALL members to find who has lowest/highest
+        all_member_ratings = {}
+        for month, data in st.session_state.months.items():
+            df = data["df"]
+            for _, row in df.iterrows():
+                name = row["_name"].strip().lower()
+                r = row["_rating"]
+                if pd.notna(r):
+                    all_member_ratings.setdefault(name, []).append(r)
+        all_member_avgs = {
+            name: sum(rs) / len(rs)
+            for name, rs in all_member_ratings.items()
+            if len(rs) >= 2  # require at least 2 ratings to qualify
+        }
+        lowest_rater  = min(all_member_avgs, key=all_member_avgs.get) if all_member_avgs else None
+        highest_rater = max(all_member_avgs, key=all_member_avgs.get) if all_member_avgs else None
 
         c1, c2 = st.columns(2)
         with c1:
@@ -849,12 +971,16 @@ with tabs[3]:
              finished_2025 >= len(months_2025) and len(months_2025) > 0),
             ("champion_2026", "2026 Completely Krached",
              finished_2026 >= len(months_2026) and len(months_2026) > 0),
-            ("speed_demon",   "Speed Demon (< 3 days)",
+            ("speed_dragon",   "Speed Dragon (< 3 days)",
              fastest_read < 3),
             ("loyalist",      "Loyal Krachhead (12+)",
              n_finished >= 12),
-            ("bookworm",      "Bookworm (5+ books)",
-             n_finished >= 5),
+            ("bookworm",      "Bookworm (6+ books)",
+             n_finished >= 6),
+            ("harsh_critic",      "Harsh Critic",
+             lowest_rater is not None and member_clean == lowest_rater),
+            ("golden_retriever",  "Golden Retriever Reader",
+             highest_rater is not None and member_clean == highest_rater),
         ]
 
         for i in range(0, len(special_badges), 3):
@@ -884,7 +1010,7 @@ with tabs[3]:
         )
 
         month_badges = [
-            (f"book_{i}", st.session_state.months[month]["book"], month in finished_months)
+            (f"books/book_{i}", st.session_state.months[month]["book"], month in finished_months)
             for i, month in enumerate(all_months, 1)
         ]
 
