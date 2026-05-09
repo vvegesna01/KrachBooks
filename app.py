@@ -8,9 +8,7 @@ from pathlib import Path
 
 import base64
 import re
-import calendar
-import urllib.request
-import json
+from data_parser import load_months, match_col, COL_PATTERNS
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PAGE CONFIG
@@ -95,77 +93,6 @@ def plot_layout(**extra):
 ASSETS_DIR = Path(__file__).parent / "assets"
 DATA_DIR = Path(__file__).parent / "data"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# COLUMN PATTERNS
-# ──────────────────────────────────────────────────────────────────────────────
-COL_PATTERNS = {
-    "name": ["name", "tag", "your name"],
-    "finished": ["reading status", "finished", "completed"],
-    "days": ["time to read", "days"],
-    "format": ["format"],
-    "rating": ["rating", "rate"],
-    "quotes": ["quote", "favorite quote", "favourite quote"],
-    "vote": ["vote", "next month"],
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# HELPERS
-# ──────────────────────────────────────────────────────────────────────────────
-def match_col(df, key):
-    for col in df.columns:
-        if any(p in col.lower() for p in COL_PATTERNS.get(key, [key])):
-            return col
-    return None
-
-
-def parse_rating(val):
-    if pd.isna(val):
-        return None
-
-    match = re.search(r"(\d+(?:\.\d+)?)", str(val))
-    return float(match.group(1)) if match else None
-
-
-def is_finished(val):
-    if pd.isna(val):
-        return False
-
-    lowered = str(val).lower().strip()
-
-    # Exclude "still reading" and similar in-progress statuses first
-    not_finished_phrases = ["still reading", "reading", "in progress", "not finished", "dnf", "did not finish"]
-    if any(phrase in lowered for phrase in not_finished_phrases):
-        return False
-
-    return any(
-        w in lowered
-        for w in ["yes", "finished", "done", "complete", "read"]
-    )
-
-
-def normalize_df(df):
-    df = df.copy()
-
-    rating_col = match_col(df, "rating")
-    finished_col = match_col(df, "finished")
-    name_col = match_col(df, "name")
-
-    df["_rating"] = df[rating_col].apply(parse_rating) if rating_col else None
-
-    df["_finished"] = (
-        df[finished_col].apply(is_finished)
-        if finished_col
-        else False
-    )
-
-    df["_name"] = (
-        df[name_col].fillna("Anonymous").str.strip()
-        if name_col
-        else "Anonymous"
-    )
-
-    return df
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # BADGE LOADER
@@ -205,125 +132,9 @@ def load_badge(badge_id, earned=True, size=140, shape="circle"):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# OPENLIBRARY LOOKUP
-# ──────────────────────────────────────────────────────────────────────────────
-@st.cache_data(show_spinner=False)
-def fetch_book_info(isbn: str):
-    try:
-        url = (
-            f"https://openlibrary.org/api/books"
-            f"?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
-        )
-
-        with urllib.request.urlopen(url, timeout=6) as resp:
-            data = json.loads(resp.read().decode())
-
-        key = f"ISBN:{isbn}"
-
-        if key not in data:
-            return None, None, None
-
-        book = data[key]
-
-        title = book.get("title")
-
-        authors_list = book.get("authors", [])
-
-        author_name = (
-            authors_list[0].get("name")
-            if authors_list
-            else "Unknown Author"
-        )
-
-        covers = book.get("cover", {})
-
-        cover_url = (
-            covers.get("large")
-            or covers.get("medium")
-            or covers.get("small")
-        )
-
-        return title, cover_url, author_name
-
-    except Exception:
-        return None, None, None
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# LOAD CSV DATA
-# ──────────────────────────────────────────────────────────────────────────────
-def load_from_data_folder():
-    months = {}
-
-    if not DATA_DIR.exists():
-        return months
-
-    for csv_path in sorted(DATA_DIR.glob("*.csv")):
-        stem = csv_path.stem
-
-        isbn = None
-        book_label = None
-
-        match = re.match(r"^(\d{4})-(\d{2})_(.+)$", stem)
-
-        if match:
-            year, month_num, rest = match.groups()
-
-            month_label = (
-                f"{calendar.month_name[int(month_num)]} {year}"
-            )
-
-            candidate = re.sub(r"[^0-9X]", "", rest.upper())
-
-            if len(candidate) in (10, 13):
-                isbn = candidate
-            else:
-                book_label = (
-                    rest.replace("_", " ")
-                    .replace("-", " ")
-                )
-
-        else:
-            parts = stem.replace("_", " ").split(" ", 1)
-
-            month_label = parts[0]
-
-            book_label = (
-                parts[1]
-                if len(parts) > 1
-                else "Unknown Book"
-            )
-
-        try:
-            df = pd.read_csv(csv_path)
-            df = normalize_df(df)
-
-            months[month_label] = {
-                "df": df,
-                "book": book_label or "Loading...",
-                "isbn": isbn,
-                "cover_url": None,
-                "author": None,
-            }
-
-        except Exception as e:
-            st.warning(f"Could not load {csv_path.name}: {e}")
-
-    return months
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 # SESSION
 # ──────────────────────────────────────────────────────────────────────────────
-st.session_state.months = load_from_data_folder()
-
-for data in st.session_state.months.values():
-    if data.get("isbn"):
-        title, cover_url, author = fetch_book_info(data["isbn"])
-
-        data["book"] = title or f"ISBN {data['isbn']}"
-        data["cover_url"] = cover_url
-        data["author"] = author or "Unknown Author"
+st.session_state.months = load_months()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # SIDEBAR
@@ -334,7 +145,7 @@ for data in st.session_state.months.values():
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
-    <div class="main-header">KrachBooks</div>
+    <div class="main-header">📚 KrachBooks</div>
     <div class="sub-header">
         some krached stats, and badges
     </div>
@@ -351,9 +162,10 @@ if not st.session_state.months:
 # ──────────────────────────────────────────────────────────────────────────────
 tabs = st.tabs([
     "Dashboard",
-    "By Month",
+    "Books",
     "Quotes",
     "My Badges",
+    "Info",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -552,7 +364,7 @@ with tabs[0]:
     )
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BY MONTH
+# BOOKS
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[1]:
     st.markdown(
@@ -765,6 +577,13 @@ with tabs[1]:
 
         book_awards = [
             (
+                "highest_rated",
+                "Highest Rated Book",
+                "Highest average rating",
+                selected_month == highest_rated_month,
+                book_stats.get(highest_rated_month, {}).get("book", "—"),
+            ),
+            (
                 "most_abandoned",
                 "Most Abandoned",
                 "Highest count of members who didn't finish",
@@ -774,7 +593,7 @@ with tabs[1]:
             (
                 "club_civil_war",
                 "Club Civil War Award",
-                "Highest rating variance - most divisive book",
+                "Highest rating variance",
                 selected_month == highest_variance_month,
                 book_stats.get(highest_variance_month, {}).get("book", "—"),
             ),
@@ -785,13 +604,7 @@ with tabs[1]:
                 selected_month == most_hated_month,
                 book_stats.get(most_hated_month, {}).get("book", "—"),
             ),
-            (
-                "highest_rated",
-                "Highest Rated Book",
-                "Highest average rating",
-                selected_month == highest_rated_month,
-                book_stats.get(highest_rated_month, {}).get("book", "—"),
-            ),
+            
         ]
 
         award_cols = st.columns(4)
@@ -963,7 +776,7 @@ with tabs[3]:
             unsafe_allow_html=True,
         )
 
-        curators_list = ["lightspeed", "pranjal", "nitarek", "kd", "ani", "potato365", "smrithi"]
+        curators_list = ["lightspeed", "pranjal", "nitarek", "kd", "ani", "shivani"]
         special_badges = [
             ("curator",       "Trusted Curator",
              member_clean in curators_list),
@@ -973,7 +786,7 @@ with tabs[3]:
              finished_2026 >= len(months_2026) and len(months_2026) > 0),
             ("speed_dragon",   "Speed Dragon (< 3 days)",
              fastest_read < 3),
-            ("loyalist",      "Loyal Krachhead (12+)",
+            ("loyalist",      "Loyal Krachhead (12+ months)",
              n_finished >= 12),
             ("bookworm",      "Bookworm (6+ books)",
              n_finished >= 6),
@@ -1038,3 +851,102 @@ with tabs[3]:
                 f"No finished books found for **{member_name}**. "
                 "Make sure your name matches the form exactly!"
             )
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 5 — INFO
+# ══════════════════════════════════════════════════════════════════════════════
+with tabs[4]:
+    st.markdown(
+        """
+        <div class="section-title">
+            <span class="material-icons">menu_book</span>
+            Curator's Handbook
+        </div>
+        <p style="color:#DDBEA8; font-size:0.97em; margin-bottom:1.5rem;">
+            So you're this month's curator, congrats! Here's everything you need
+            to keep the club running smoothly. ✨
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    steps = [
+        {
+            "icon": "dynamic_form",
+            "number": "01",
+            "title": "Send Out the Google Form",
+            "body": (
+                "Once the book has been picked, send the monthly Google Form out "
+                "to all members. Make sure the form is open and the link is shared "
+                "in the group chat so everyone can fill it in at their own pace. "
+                ""
+            ),
+        },
+        {
+            "icon": "table_view",
+            "number": "02",
+            "title": "Send the CSV to Keerthana",
+            "body": (
+                "After the meeting (or once responses have settled), download the "
+                "CSV export of the Google Form responses and send it to "
+                "<strong style='color:#F3DFC1;'>Keerthana</strong> so the dashboard "
+                "can be updated with the new month's data. "
+                "If you're feeling up to it you can also make a PR to this github repo with the csv file. "
+                "The format is 'YYYY-MM_[ISBN].csv' in 'data/'."
+            ),
+        },
+        {
+            "icon": "event",
+            "number": "03",
+            "title": "Arrange the Meeting Time",
+            "body": (
+                "The default meeting slot is the <strong style='color:#F3DFC1;'>first "
+                "Sunday of the month</strong>. If that doesn't work for the group, "
+                "it's your job to find an alternative time — poll the group early "
+                "so there's no last-minute scramble!"
+            ),
+        },
+        {
+            "icon": "how_to_vote",
+            "number": "04",
+            "title": "Remind Next Month's Curator to Send Voting",
+            "body": (
+                "Before the club meeting, make sure the <strong style='color:#F3DFC1;'>"
+                "next month's curator</strong> has sent out the ranked-choice voting "
+                "for book nominations. Members should have a chance to vote "
+                "<em>before</em> everyone gathers, so the new book can be announced "
+                "at the meeting."
+            ),
+        },
+    ]
+
+    for step in steps:
+        st.markdown(
+            f"""
+            <div class="curator-step-card">
+                <div class="curator-step-number">{step['number']}</div>
+                <div>
+                    <div class="curator-step-title">
+                        <span class="material-icons">{step['icon']}</span>
+                        {step['title']}
+                    </div>
+                    <div class="curator-step-body">{step['body']}</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        """
+        <div class="curator-checklist">
+            <span class="material-icons">tips_and_updates</span>
+            <strong style="color:#F3DFC1;">Quick Checklist</strong><br>
+            ☐ &nbsp; Google Form sent to members<br>
+            ☐ &nbsp; CSV exported &amp; sent to Keerthana<br>
+            ☐ &nbsp; Meeting time confirmed (1st Sunday or rescheduled)<br>
+            ☐ &nbsp; Next curator's ranked-choice vote live before meeting
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
