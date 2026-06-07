@@ -88,7 +88,7 @@ def load_badge(badge_id, earned=True, size=140, shape="circle"):
                 css += " img-square"
             return f'<img src="data:{mime};base64,{b64}" width="{size}" class="{css}"/>'
 
-    icon = "stars" if earned else "lock"
+    icon = "military_tech" if earned else "lock"
     return f'<div class="badge-placeholder"><span class="material-icons">{icon}</span></div>'
 
 
@@ -549,7 +549,7 @@ with tabs[3]:
             unsafe_allow_html=True,
         )
 
-        curators_list = ["lightspeed", "pranjal", "nitarek", "kd", "ani", "shivani"]
+        curators_list = ["lightspeed", "pranjal", "aryan", "kd", "ani", "shivani", "keval", "maya"]
         special_badges = [
             ("curator",           "Trusted Curator",              member_clean in curators_list),
             ("champion_2025",     "2025 Completely Krached",       finished_2025 >= len(months_2025) and len(months_2025) > 0),
@@ -702,15 +702,38 @@ with tabs[4]:
     )
 
     st.markdown("---")
+    st.markdown(
+        '<div class="section-title">'
+        '<span class="material-icons">question_mark</span>More Info/FAQs</div>',
+        unsafe_allow_html=True,
+    )
+    
+
     with st.expander("Keeth's Checklist (ignore if not Keeth)", expanded=False):
         st.markdown(
-            '<div class="curator-checklist">'
-            '<span class="material-icons">tips_and_updates</span> '
+            '<div class="curator-checklist m-5">'
+            '<span class="material-icons">lightbulb</span> '
             "<strong>Keeth's Checklist (ignore if not Keeth)</strong><br>"
             '☐ &nbsp; Update KrachBooks Dashboard with CSV<br>'
             "☐ &nbsp; Add this month's curator to list<br>"
             '☐ &nbsp; Add new book badge to /assets<br>'
             '☐ &nbsp; Switch current book on Fable<br>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+    with st.expander("FAQs", expanded=True):
+        st.markdown(
+            '<div class="curator-checklist m-5">'
+            '<span class="material-icons">lightbulb</span> '
+            "<strong>What goes in the monthly check in form?</strong><br>"
+            'Please use the following mandatory fields:<br>'
+            "☐ &nbsp; Name or Tag?<br>"
+            '☐ &nbsp; Reading Status (Still Reading, Yes, No, DNF)<br>'
+            '☐ &nbsp; Read time (in days)<br>'
+            '☐ &nbsp; Format (Audiobook, Kindle/eBook, Hardcopy<br>'
+            '☐ &nbsp; Rating (1-5) <br>'
+            '☐ &nbsp; Favorite Quote/Review<br>'
             '</div>',
             unsafe_allow_html=True,
         )

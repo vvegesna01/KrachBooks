@@ -146,7 +146,8 @@ section[data-testid="stSidebar"] {
 
 .stTabs [data-baseweb="tab"] {
     background: rgba(36, 106, 115, 0.12) !important;
-    border-radius: 14px !important;
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
     border: 1px solid transparent !important;
     color: var(--text-muted) !important;
     padding: 0.7rem 1rem !important;
@@ -159,7 +160,7 @@ section[data-testid="stSidebar"] {
 }
 
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, #246A73 0%, #368F8B 100%) !important;
+    background: linear-gradient(135deg, #246A73 0%, #246A73 100%) !important;
     border-color: #368F8B !important;
     color: #F3DFC1 !important;
 }
