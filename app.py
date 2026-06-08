@@ -13,7 +13,7 @@ import streamlit as st
 
 # ── Page config must be FIRST ─────────────────────────────────────────────────
 st.set_page_config(
-    page_title="KrachBooks",
+    page_title="KrachBooks 📚",
     page_icon="📚",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -32,7 +32,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.markdown(
-        '<div class="main-header">KrachBooks</div>'
+        '<div class="main-header">📚 KrachBooks</div>'
         '<div class="sub-header">your book club, tracked.</div>',
         unsafe_allow_html=True,
     )
@@ -53,11 +53,9 @@ from utils.gsheet_ops import get_data, get_config
 from utils.ui import (
     render_dashboard, render_cover_wall,
     render_checkin_form, render_voting_form,
-    render_curator_panel, render_profile, 
+    render_curator_panel, render_profile,
     MEMBERS,
 )
-
-from utils.club_constitution import render_constitution
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -68,14 +66,13 @@ st.markdown(
 
 # ── Load config first so we can determine role before anything else ───────────
 config          = get_config()
-current_curator = config.get("current_curator", "lightspeed").strip().lower()
-st.markdown({current_curator})
+current_curator = config.get("current_curator", "").strip().lower()
 current_book    = config.get("current_book", "No book selected yet")
 voting_open     = config.get("voting_open", "False").lower() == "true"
 
 # ── User selection ────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### Who goes there?")
+    st.markdown("### 👤 Who are you?")
     user = st.selectbox(
         "Select your name",
         ["— select —"] + MEMBERS,
@@ -84,7 +81,7 @@ with st.sidebar:
     if user and user != "— select —":
         st.session_state.user = user
         # Role label uses config, not the hardcoded CURATORS list
-        role_label = "✨ Curator" if user.strip().lower() == current_curator else "Member"
+        role_label = "✨ Curator" if user.strip().lower() == current_curator else "Member <3"
         st.markdown(f"**Role:** {role_label}")
     st.markdown("---")
     if st.button("🔒 Log out"):
@@ -106,7 +103,7 @@ checkins_df = get_data("Checkins")
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 vote_tab_label = "✨ Curator" if is_curator else "🗳️ Vote"
-tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile", "📜 Club Constitution"])
+tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile"])
 
 with tabs[0]:
     render_dashboard(checkins_df, config)
@@ -129,6 +126,3 @@ with tabs[3]:
 
 with tabs[4]:
     render_profile(user)
-
-with tabs[5]:
-    render_constitution()

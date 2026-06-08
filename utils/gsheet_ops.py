@@ -19,13 +19,37 @@ def get_data(worksheet_name: str) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame()
 
-
 def get_config():
-    """Return Config sheet as a plain {key: value} dict."""
-    df = get_data("Config")
-    if df.empty or "Key" not in df.columns:
+    try:
+        gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
+        ws = gc.open_by_key(SHEET_ID).worksheet("Config")
+        records = ws.get_all_records()
+        return {
+            str(row["Key"]).strip(): str(row["Value"]).strip()
+            for row in records
+            if row.get("Key")
+        }
+    except Exception as e:
+        st.error(f"Config load failed: {e}")
         return {}
-    return dict(zip(df["Key"].str.strip(), df["Value"].str.strip()))
+# def get_config():
+#     """Return Config sheet as a plain {key: value} dict."""
+#     df = get_data("Config")
+#     st.write("DEBUG raw config df:", get_data("Config"))
+    
+#     if df.empty:
+#         return {}
+
+#     # 1. Strip whitespace from column names to handle potential CSV formatting issues
+#     df.columns = df.columns.str.strip()
+    
+#     # 2. Verify columns exist before proceeding
+#     if "Key" not in df.columns or "Value" not in df.columns:
+#         # Debugging: Uncomment the line below to see what the columns actually are
+#         # st.error(f"Config columns found: {df.columns.tolist()}")
+#         return {}
+        
+#     return dict(zip(df["Key"].astype(str).str.strip(), df["Value"].astype(str).str.strip()))
 
 
 def get_books_lookup():

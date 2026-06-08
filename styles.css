@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    KrachBooks — Stylesheet
-   Palette: caramel / gold / khaki / ash  on near-black
+   Palette: tomato / grape-soda / pacific-blue / pale-oak on deep mauve
 ───────────────────────────────────────────────────────────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:wght@300;400;500&display=swap');
@@ -8,17 +8,24 @@
 
 /* ROOT VARIABLES */
 :root {
-    --caramel:    #fcb97d;
-    --gold:       #edd892;
-    --khaki:      #c6b89e;
-    --ash:        #b5b8a3;
-    --ash-2:      #aaba9e;
-    --bg:         #1a1a1a;
-    --surface:    #222222;
-    --surface-2:  #2a2a2a;
-    --text:       #f0e6d3;
-    --text-muted: #9a9080;
-    --border:     rgba(252, 185, 125, 0.2);
+    --tomato:      #ff6542;
+    --grape:       #88498f;
+    --pacific:     #779fa1;
+    --pale-oak:    #e0cba8;
+    --mauve:       #564154;
+
+    /* Semantic aliases — same variable names so nothing else needs to change */
+    --caramel:    #ff6542;   /* tomato  — primary accent */
+    --gold:       #e0cba8;   /* pale-oak — section titles, secondary */
+    --khaki:      #779fa1;   /* pacific-blue — tertiary */
+    --ash:        #a89faa;
+    --ash-2:      #8fb8b9;
+    --bg:         #1a1318;
+    --surface:    #241b23;
+    --surface-2:  #2e2230;
+    --text:       #f2ece8;
+    --text-muted: #9a8a98;
+    --border:     rgba(136, 73, 143, 0.3);
     --radius:     10px;
 }
 
@@ -106,12 +113,12 @@ body, .stApp {
 .cover-frame:hover {
     transform: scale(1.05);
     border-color: var(--caramel);
-    box-shadow: 0 6px 20px rgba(252, 185, 125, 0.25);
+    box-shadow: 0 6px 20px rgba(255, 101, 66, 0.25);
 }
 
 .cover-frame--selected {
     border: 3px solid var(--caramel) !important;
-    box-shadow: 0 0 20px rgba(252, 185, 125, 0.4);
+    box-shadow: 0 0 20px rgba(255, 101, 66, 0.4);
     border-radius: 6px;
 }
 
@@ -131,7 +138,7 @@ body, .stApp {
 
 /* CURRENT BOOK BANNER */
 .current-book-banner {
-    background: linear-gradient(135deg, rgba(252,185,125,0.12), rgba(237,216,146,0.08));
+    background: linear-gradient(135deg, rgba(255,101,66,0.1), rgba(136,73,143,0.07));
     border: 1px solid var(--border);
     border-left: 4px solid var(--caramel);
     border-radius: var(--radius);
@@ -153,6 +160,77 @@ body, .stApp {
     color: var(--text);
 }
 
+/* NOMINEE CARDS (voting tab) */
+.nominee-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+
+.nominee-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    flex: 1 1 160px;
+    max-width: 220px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.nominee-card:hover {
+    border-color: var(--caramel);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(255,101,66,0.15);
+}
+
+.nominee-card--voted {
+    border-color: var(--caramel) !important;
+    background: rgba(255,101,66,0.07);
+    box-shadow: 0 0 0 3px rgba(255,101,66,0.2);
+}
+
+.nominee-cover {
+    border-radius: 6px;
+    width: 100px;
+    height: 148px;
+    object-fit: cover;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.nominee-cover-placeholder {
+    width: 100px;
+    height: 148px;
+    background: var(--surface-2);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin: 0 auto 10px auto;
+    padding: 8px;
+}
+
+.nominee-title {
+    font-family: 'Fraunces', serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.nominee-voted-badge {
+    display: inline-block;
+    background: var(--caramel);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+}
+
 /* BADGES */
 .badge-wrap {
     text-align: center;
@@ -170,7 +248,7 @@ body, .stApp {
 }
 
 .badge-img-earned {
-    border: 3px solid var(--gold);
+    border: 3px solid var(--pacific);
     border-radius: 50%;
     padding: 4px;
 }
@@ -189,7 +267,7 @@ body, .stApp {
 }
 
 .badge-status-earned {
-    color: var(--gold);
+    color: var(--pacific);
     font-size: 0.75rem;
     font-weight: 600;
 }
@@ -203,8 +281,8 @@ body, .stApp {
 .award-card {
     padding: 16px;
     border-radius: var(--radius);
-    background: rgba(181, 184, 163, 0.07);
-    border-top: 4px solid var(--gold);
+    background: rgba(119, 159, 161, 0.07);
+    border-top: 4px solid var(--pacific);
     text-align: center;
     transition: transform 0.2s;
 }
@@ -212,9 +290,9 @@ body, .stApp {
 .award-card:hover { transform: translateY(-2px); }
 
 .award-card--winner {
-    background: rgba(252, 185, 125, 0.12);
+    background: rgba(255, 101, 66, 0.1);
     border-top: 4px solid var(--caramel);
-    box-shadow: 0 4px 16px rgba(252, 185, 125, 0.2);
+    box-shadow: 0 4px 16px rgba(255, 101, 66, 0.2);
 }
 
 .award-title {
@@ -255,7 +333,7 @@ body, .stApp {
 .curator-step-number {
     font-family: 'Fraunces', serif;
     font-size: 2.5rem;
-    color: var(--border);
+    color: rgba(136, 73, 143, 0.4);
     font-weight: 700;
     line-height: 1;
     min-width: 50px;
@@ -295,7 +373,7 @@ body, .stApp {
 }
 
 .stTabs [aria-selected="true"] {
-    color: var(--bg) !important;
+    color: #fff !important;
     background: var(--caramel) !important;
     font-weight: 600;
 }
@@ -313,12 +391,12 @@ body, .stApp {
 .stButton > button:hover {
     border-color: var(--caramel) !important;
     color: var(--caramel) !important;
-    background: rgba(252,185,125,0.08) !important;
+    background: rgba(255,101,66,0.08) !important;
 }
 
 .stButton > button[kind="primary"] {
     background: var(--caramel) !important;
-    color: var(--bg) !important;
+    color: #fff !important;
     border-color: var(--caramel) !important;
     font-weight: 600 !important;
 }
@@ -338,7 +416,7 @@ body, .stApp {
 .stTextInput input:focus,
 .stTextArea textarea:focus {
     border-color: var(--caramel) !important;
-    box-shadow: 0 0 0 2px rgba(252,185,125,0.15) !important;
+    box-shadow: 0 0 0 2px rgba(255,101,66,0.15) !important;
 }
 
 /* Slider */

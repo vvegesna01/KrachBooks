@@ -23,9 +23,8 @@ CURATORS = [
     "lightspeed", "pranjal", "aryan", "kd", "ani", "shivani", "maya", "detpleasant2000",
 ]
 
-MEMBERS = [
-    "DetPleasant2000", "Ani", "Pranjal", "Satabdiya", "OJ",
-    "BO$$", "Nitarek", "Lightspeed", "RishRash", "Maya", "Pooja",
+MEMBERS = ["Ani", "BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "Aryan", "OJ", "Pooja", "Pranjal", 
+        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"
 ]
 
 THEME = {
@@ -64,8 +63,7 @@ def _load_badge_img(badge_id: str, earned: bool = True, size: int = 130) -> str:
                 b64 = base64.b64encode(f.read()).decode()
             css = "badge-img-earned" if earned else "badge-img-locked"
             return f'<img src="data:{mime};base64,{b64}" width="{size}" class="{css}"/>'
-    icon = "military_tech" if earned else "lock"
-    return f'<span class="material-icons badge-placeholder-icon" style="font-size:{size//2}px">{"⭐" if earned else "🔒"}</span>'
+    return f'<span style="font-size:{size//2}px">{"⭐" if earned else "🔒"}</span>'
 
 
 def _stat_card(number, label):
@@ -145,7 +143,6 @@ def render_cover_wall(checkins_df: pd.DataFrame):
         st.markdown("<hr>", unsafe_allow_html=True)
         _section("🔍", selected)
 
-        # Header: cover + key stats
         cover_col, info_col = st.columns([1, 4])
         with cover_col:
             if meta and meta["cover_url"]:
@@ -171,7 +168,6 @@ def render_cover_wall(checkins_df: pd.DataFrame):
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Charts: rating histogram + format pie
         chart_l, chart_r = st.columns(2)
         with chart_l:
             if not ratings.empty:
@@ -195,12 +191,10 @@ def render_cover_wall(checkins_df: pd.DataFrame):
                 fig_fmt.update_layout(**_plot_layout())
                 st.plotly_chart(fig_fmt, use_container_width=True)
 
-        # Member breakdown table
         _section("👥", "Member Responses")
         show_cols = [c for c in ["Name", "Finished", "DaysToRead", "Format", "Rating"] if c in book_df.columns]
         st.dataframe(book_df[show_cols].reset_index(drop=True), use_container_width=True, hide_index=True)
 
-        # Quotes
         if "Quote" in book_df.columns:
             quotes = book_df[["Name", "Quote"]].dropna(subset=["Quote"])
             quotes = quotes[quotes["Quote"].str.strip().str.lower().isin(["", "nan", "none"]) == False]
@@ -221,46 +215,47 @@ def render_cover_wall(checkins_df: pd.DataFrame):
 
 # ── Dashboard / Stats ─────────────────────────────────────────────────────────
 
+# ── Dashboard / Stats ─────────────────────────────────────────────────────────
+ 
 def render_dashboard(checkins_df: pd.DataFrame, config: dict):
     _section("📊", "Club Overview")
-
+ 
     current_book = config.get("current_book", "—")
     st.markdown(
         f'<div class="current-book-banner">📖 Currently reading: <strong>{current_book}</strong></div>',
         unsafe_allow_html=True,
     )
-
+ 
     if checkins_df.empty:
         st.info("No check-in data yet.")
         return
-
+ 
     df = checkins_df.copy()
     df.columns = [c.strip() for c in df.columns]
-
-    # Normalise column names defensively
-    col_map = {c.lower(): c for c in df.columns}
+ 
+    col_map      = {c.lower(): c for c in df.columns}
     finished_col = col_map.get("finished", None)
     rating_col   = col_map.get("rating", None)
     book_col     = col_map.get("booktitle", None)
-
+ 
     total_members = df[col_map["name"]].nunique() if "name" in col_map else "—"
     total_entries = len(df)
     n_finished    = int((df[finished_col].str.lower() == "yes").sum()) if finished_col else 0
+    n_books       = df[book_col].nunique() if book_col else "—"
     avg_rating    = df[rating_col].dropna().astype(float).mean() if rating_col else None
     avg_str       = f"{avg_rating:.1f} ⭐" if avg_rating and not math.isnan(avg_rating) else "—"
     pct_done      = round(n_finished / total_entries * 100, 1) if total_entries else 0
-
+ 
     c1, c2, c3, c4 = st.columns(4)
     with c1: _stat_card(total_members, "Members")
-    with c2: _stat_card(n_finished, "Finished")
+    with c2: _stat_card(n_books, "Books Read")
     with c3: _stat_card(f"{pct_done}%", "Completion Rate")
     with c4: _stat_card(avg_str, "Avg Rating")
-
+ 
     st.markdown("<br>", unsafe_allow_html=True)
-
+ 
     col_l, col_r = st.columns(2)
-
-    # Completion by book
+ 
     if book_col and finished_col:
         book_stats = (
             df.groupby(book_col)
@@ -277,8 +272,7 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict):
             fig.update_traces(texttemplate="%{text}%", textposition="outside")
             fig.update_layout(**_plot_layout(yaxis=dict(range=[0, 115], gridcolor=THEME["grid"], color=THEME["muted"])))
             st.plotly_chart(fig, use_container_width=True)
-
-    # Rating breakdown
+ 
     if rating_col:
         all_ratings = df[rating_col].dropna().astype(float).tolist()
         if all_ratings:
@@ -293,12 +287,7 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict):
                 )
                 fig2.update_layout(**_plot_layout())
                 st.plotly_chart(fig2, use_container_width=True)
-
-    # # Full table
-    # _section("📋", "All Check-ins")
-    # st.dataframe(df, use_container_width=True, hide_index=True)
-
-
+ 
 # ── Check-in Form ─────────────────────────────────────────────────────────────
 
 def render_checkin_form(user: str, config: dict):
@@ -307,7 +296,6 @@ def render_checkin_form(user: str, config: dict):
 
     checkins_df = get_data("Checkins")
 
-    # Pre-fill if user already submitted
     existing = pd.DataFrame()
     if not checkins_df.empty and "Name" in checkins_df.columns:
         mask = (
@@ -369,14 +357,20 @@ def render_checkin_form(user: str, config: dict):
 
 def render_voting_form(user: str, config: dict):
     month = config.get("current_month", "This Month")
-    _section("🗳️", f"Vote for Next Month's Book")
+    _section("🗳️", "Vote for Next Month's Book")
+    st.markdown(
+        '<p class="page-intro-sm">Pick your favourite from the curator\'s nominations below.</p>',
+        unsafe_allow_html=True,
+    )
 
     noms_df = get_data("Nominations")
     if noms_df.empty or "BookTitle" not in noms_df.columns:
-        st.info("No nominations yet. Ask your curator to add some!")
+        st.markdown(
+            '<div class="current-book-banner">📭 No nominations yet — check back once your curator adds some!</div>',
+            unsafe_allow_html=True,
+        )
         return
 
-    # Show only this month's nominations
     if "Month" in noms_df.columns:
         noms_df = noms_df[noms_df["Month"].str.strip() == month.strip()]
 
@@ -385,7 +379,7 @@ def render_voting_form(user: str, config: dict):
         st.info("No nominations for this month yet.")
         return
 
-    # Check if user already voted
+    # ── Check existing vote ───────────────────────────────────────────────────
     votes_df  = get_data("Votes")
     user_vote = None
     if not votes_df.empty and "VotedBy" in votes_df.columns and "Month" in votes_df.columns:
@@ -395,27 +389,127 @@ def render_voting_form(user: str, config: dict):
         if votes_df[mask].shape[0] > 0:
             user_vote = votes_df[mask].iloc[0].get("BookTitle", None)
 
+    # ── Nominee cards ─────────────────────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <style>
+    .nominee-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .nominee-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        flex: 1 1 160px;
+        max-width: 220px;
+        text-align: center;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .nominee-card:hover {
+        border-color: var(--caramel);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(252,185,125,0.15);
+    }
+    .nominee-card--voted {
+        border-color: var(--caramel) !important;
+        background: rgba(252,185,125,0.07);
+        box-shadow: 0 0 0 3px rgba(252,185,125,0.2);
+    }
+    .nominee-cover {
+        border-radius: 6px;
+        width: 100px;
+        height: 148px;
+        object-fit: cover;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .nominee-cover-placeholder {
+        width: 100px;
+        height: 148px;
+        background: var(--surface-2);
+        border: 1px dashed var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin: 0 auto 10px auto;
+        padding: 8px;
+    }
+    .nominee-title {
+        font-family: 'Fraunces', serif;
+        font-size: 0.9rem;
+        color: var(--text);
+        font-weight: 600;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+    .nominee-voted-badge {
+        display: inline-block;
+        background: var(--caramel);
+        color: var(--bg);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 20px;
+        margin-top: 6px;
+        letter-spacing: 0.5px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    import html as _html
+
+    cards_html = '<div class="nominee-grid">'
+    for book in books:
+        meta      = get_book_info(book)
+        is_voted  = user_vote and user_vote.lower() == book.lower()
+        card_cls  = "nominee-card nominee-card--voted" if is_voted else "nominee-card"
+        safe_book = _html.escape(book)
+
+        if meta and meta.get("cover_url"):
+            cover_html = f'<img class="nominee-cover" src="{meta["cover_url"]}" />'
+        else:
+            cover_html = (
+                f'<div class="nominee-cover-placeholder">'
+                f'<span style="font-size:2rem; display:block; margin-bottom:6px;">📖</span>'
+                f'<span>{safe_book}</span>'
+                f'</div>'
+            )
+
+        voted_badge = '<div class="nominee-voted-badge">Your Vote</div>' if is_voted else ""
+
+        cards_html += (
+            f'<div class="{card_cls}">'
+            f'{cover_html}'
+            f'<div class="nominee-title">{safe_book}</div>'
+            f'{voted_badge}'
+            f'</div>'
+        )
+    cards_html += "</div>"
+    st.markdown(cards_html, unsafe_allow_html=True)
+
+    # ── Vote form ─────────────────────────────────────────────────────────────
     if user_vote:
-        st.success(f"✅ You voted for **{user_vote}** — you can change your vote below.")
-
-    # Display nominations as cards with covers
-    st.markdown("<br>", unsafe_allow_html=True)
-    COLS = min(len(books), 4)
-    cols = st.columns(COLS)
-    for i, book in enumerate(books):
-        meta = get_book_info(book)
-        with cols[i % COLS]:
-            if meta and meta["cover_url"]:
-                st.image(meta["cover_url"], width=130)
-            nominated_by = noms_df[noms_df["BookTitle"] == book]["NominatedBy"].values
-            nominated_by = nominated_by[0] if len(nominated_by) > 0 else "—"
-            st.markdown(f'<div class="nom-card"><strong>{book}</strong><br><small>by {nominated_by}</small></div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="current-book-banner">✅ You voted for <strong>{user_vote}</strong>. '
+            f'Change your mind below.</div>',
+            unsafe_allow_html=True,
+        )
 
     with st.form("vote_form"):
-        choice = st.radio("Your vote:", books, index=books.index(user_vote) if user_vote in books else 0)
-        submitted = st.form_submit_button("🗳️ Cast Vote", use_container_width=True)
+        choice = st.selectbox(
+            "Cast your vote",
+            books,
+            index=books.index(user_vote) if user_vote in books else 0,
+            help="Select the book you want the club to read next month.",
+        )
+        submitted = st.form_submit_button(
+            "🗳️  Submit Vote",
+            use_container_width=True,
+            type="primary",
+        )
 
     if submitted:
         try:
@@ -429,97 +523,204 @@ def render_voting_form(user: str, config: dict):
 # ── Curator Panel ─────────────────────────────────────────────────────────────
 
 def render_curator_panel(user: str, config: dict):
-    _section("✨", "Curator Panel")
-    st.markdown('<p class="page-intro-sm">You\'re the curator this month — here\'s your control panel.</p>', unsafe_allow_html=True)
-
     month        = config.get("current_month", "")
     voting_open  = config.get("voting_open", "False").lower() == "true"
     current_book = config.get("current_book", "")
 
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, rgba(237,216,146,0.1), rgba(252,185,125,0.06));
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--gold);
+        border-radius: 12px;
+        padding: 18px 24px;
+        margin-bottom: 28px;
+    ">
+        <div style="font-family:'Fraunces',serif; font-size:1.1rem; color:var(--gold); margin-bottom:4px;">
+            ✨ You're the Curator for {month}
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">
+            Use the steps below to nominate books, open voting, and confirm next month's pick.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     # ── Step 1: Nominations ──────────────────────────────────────────────────
-    with st.expander("📚 Step 1 — Add Book Nominations", expanded=True):
-        with st.form("nom_form"):
-            st.markdown("Add 2–3 books for the club to vote on.")
-            nom_title = st.text_input("Book Title")
-            submitted = st.form_submit_button("➕ Add Nomination")
-        if submitted and nom_title:
-            try:
-                add_nomination(month, nom_title, user)
-                st.success(f"Added **{nom_title}**!")
-                st.rerun()
-            except Exception as e:
-                st.error(str(e))
+    st.markdown("""
+    <div class="curator-step-card">
+        <div class="curator-step-number">01</div>
+        <div>
+            <div class="curator-step-title">📚 Add Nominations</div>
+            <div class="curator-step-body">Add 2–3 books for the club to vote on. They'll appear as cards in the voting tab.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        noms_df = get_data("Nominations")
-        if not noms_df.empty and "Month" in noms_df.columns:
-            this_month_noms = noms_df[noms_df["Month"].str.strip() == month.strip()]
-            if not this_month_noms.empty:
-                st.markdown("**Current nominations:**")
-                for _, row in this_month_noms.iterrows():
-                    meta = get_book_info(row["BookTitle"])
-                    c1, c2 = st.columns([1, 5])
-                    with c1:
-                        if meta and meta["cover_url"]:
-                            st.image(meta["cover_url"], width=60)
-                    with c2:
-                        st.markdown(f"**{row['BookTitle']}**")
+    with st.form("nom_form"):
+        col_a, col_b = st.columns([4, 1])
+        with col_a:
+            nom_title = st.text_input("Book title", placeholder="e.g. Tomorrow, and Tomorrow, and Tomorrow", label_visibility="collapsed")
+        with col_b:
+            submitted = st.form_submit_button("➕ Add", use_container_width=True)
 
-    # ── Step 2: Open / Close Voting ──────────────────────────────────────────
-    with st.expander("🗳️ Step 2 — Manage Voting", expanded=True):
-        status_label = "🟢 Voting is OPEN" if voting_open else "🔴 Voting is CLOSED"
-        st.markdown(f"**Status:** {status_label}")
+    if submitted and nom_title:
+        try:
+            add_nomination(month, nom_title, user)
+            st.success(f"Added **{nom_title}**!")
+            st.rerun()
+        except Exception as e:
+            st.error(str(e))
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if not voting_open and st.button("Open Voting", use_container_width=True):
+    noms_df = get_data("Nominations")
+    if not noms_df.empty and "Month" in noms_df.columns:
+        this_month_noms = noms_df[noms_df["Month"].str.strip() == month.strip()]
+        if not this_month_noms.empty:
+            st.markdown("<br>", unsafe_allow_html=True)
+            cols = st.columns(len(this_month_noms))
+            for i, (_, row) in enumerate(this_month_noms.iterrows()):
+                meta = get_book_info(row["BookTitle"])
+                with cols[i]:
+                    if meta and meta.get("cover_url"):
+                        st.image(meta["cover_url"], width=90)
+                    st.markdown(
+                        f'<div style="font-size:0.8rem; color:var(--text); font-family:Fraunces,serif; margin-top:6px; line-height:1.3">'
+                        f'{row["BookTitle"]}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Step 2: Voting ────────────────────────────────────────────────────────
+    status_color = "var(--ash-2)" if voting_open else "var(--text-muted)"
+    status_dot   = "🟢" if voting_open else "🔴"
+    status_text  = "Voting is OPEN — members can cast their votes." if voting_open else "Voting is closed."
+
+    st.markdown(f"""
+    <div class="curator-step-card">
+        <div class="curator-step-number">02</div>
+        <div style="flex:1">
+            <div class="curator-step-title">🗳️ Manage Voting</div>
+            <div class="curator-step-body" style="margin-bottom:12px;">
+                {status_dot} <span style="color:{status_color}">{status_text}</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if not voting_open:
+            if st.button("🔓  Open Voting", use_container_width=True):
                 try:
                     update_config("voting_open", "True")
-                    st.success("Voting opened!")
+                    st.success("Voting is now open!")
                     st.rerun()
                 except Exception as e:
                     st.error(str(e))
 
-        with col2:
-            if voting_open and st.button("🔒 Close Voting & Pick Winner", use_container_width=True, type="primary"):
-                votes_df = get_data("Votes")
-                if not votes_df.empty and "BookTitle" in votes_df.columns and "Month" in votes_df.columns:
-                    month_votes = votes_df[votes_df["Month"].str.strip() == month.strip()]
-                    if not month_votes.empty:
-                        winner = month_votes["BookTitle"].value_counts().idxmax()
-                        try:
-                            close_voting(winner, month)
-                            st.success(f"🎉 Winner: **{winner}**! Voting closed.")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(str(e))
-                    else:
-                        st.warning("No votes recorded yet!")
-                else:
-                    st.warning("No votes data found.")
+    with col2:
+        if voting_open:
+            if st.button("🔒  Close Voting", use_container_width=True, type="primary"):
+                st.session_state["confirm_close"] = True
 
-        # Live vote tally
+    # Confirm close — show winner preview before committing
+    if st.session_state.get("confirm_close"):
         votes_df = get_data("Votes")
         if not votes_df.empty and "BookTitle" in votes_df.columns and "Month" in votes_df.columns:
             month_votes = votes_df[votes_df["Month"].str.strip() == month.strip()]
             if not month_votes.empty:
-                tally = month_votes["BookTitle"].value_counts().reset_index()
-                tally.columns = ["Book", "Votes"]
-                st.markdown("**Live tally:**")
-                fig = px.bar(
-                    tally, x="Book", y="Votes", text="Votes",
-                    color_discrete_sequence=[THEME["accent"]],
-                    title="Current Votes",
-                )
-                fig.update_layout(**_plot_layout())
-                st.plotly_chart(fig, use_container_width=True)
+                tally  = month_votes["BookTitle"].value_counts()
+                winner = tally.idxmax()
+                total  = tally.sum()
 
-    # ── Step 3: Update current month/curator ─────────────────────────────────
-    with st.expander("⚙️ Step 3 — Update Config"):
-        with st.form("config_form"):
-            new_month    = st.text_input("Current Month (e.g. June 2026)", value=month)
-            new_curator  = st.text_input("Next Curator's Name", value=config.get("current_curator", ""))
-            save_cfg     = st.form_submit_button("💾 Save Config")
-        if save_cfg:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="
+                    background: rgba(252,185,125,0.1);
+                    border: 1px solid var(--caramel);
+                    border-radius: 12px;
+                    padding: 20px 24px;
+                    margin-bottom: 12px;
+                ">
+                    <div style="font-family:'Fraunces',serif; font-size:1rem; color:var(--gold); margin-bottom:8px;">
+                        Confirm Winner
+                    </div>
+                    <div style="font-size:1.4rem; font-family:'Fraunces',serif; color:var(--caramel); margin-bottom:4px;">
+                        🏆 {winner}
+                    </div>
+                    <div style="font-size:0.82rem; color:var(--text-muted);">
+                        {tally[winner]} of {total} votes
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                c_confirm, c_cancel = st.columns(2)
+                with c_confirm:
+                    if st.button("✅  Confirm & Close", use_container_width=True, type="primary"):
+                        try:
+                            close_voting(winner, month)
+                            st.session_state.pop("confirm_close", None)
+                            st.success(f"🎉 **{winner}** is next month's book!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
+                with c_cancel:
+                    if st.button("Cancel", use_container_width=True):
+                        st.session_state.pop("confirm_close", None)
+                        st.rerun()
+            else:
+                st.warning("No votes recorded yet — can't close.")
+                st.session_state.pop("confirm_close", None)
+
+    # ── Live tally ────────────────────────────────────────────────────────────
+    votes_df = get_data("Votes")
+    if not votes_df.empty and "BookTitle" in votes_df.columns and "Month" in votes_df.columns:
+        month_votes = votes_df[votes_df["Month"].str.strip() == month.strip()]
+        if not month_votes.empty:
+            tally       = month_votes["BookTitle"].value_counts().reset_index()
+            tally.columns = ["Book", "Votes"]
+            total_votes = tally["Votes"].sum()
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; '
+                f'text-transform:uppercase; letter-spacing:1px;">'
+                f'Live Tally · {total_votes} vote{"s" if total_votes != 1 else ""} cast</div>',
+                unsafe_allow_html=True,
+            )
+            for _, row in tally.iterrows():
+                pct        = row["Votes"] / total_votes * 100
+                is_leading = row["Book"] == tally.iloc[0]["Book"]
+                bar_color  = "var(--caramel)" if is_leading else "var(--khaki)"
+                st.markdown(f"""
+                <div style="margin-bottom: 12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span style="font-size:0.85rem; color:var(--text); font-family:'Fraunces',serif;">{row['Book']}</span>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">{row['Votes']} vote{"s" if row['Votes'] != 1 else ""} · {pct:.0f}%</span>
+                    </div>
+                    <div style="background:var(--surface-2); border-radius:4px; height:8px; overflow:hidden;">
+                        <div style="background:{bar_color}; width:{pct}%; height:100%; border-radius:4px;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Step 3: Config ────────────────────────────────────────────────────────
+    st.markdown("""
+    <div class="curator-step-card">
+        <div class="curator-step-number">03</div>
+        <div>
+            <div class="curator-step-title">⚙️ Update Config</div>
+            <div class="curator-step-body">Roll over to next month — update the month label and hand off the curator role.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("config_form"):
+        new_month   = st.text_input("Current Month", value=month, placeholder="e.g. July 2026")
+        new_curator = st.text_input("Next Curator's Name", value=config.get("current_curator", ""), placeholder="Exact name from the members list")
+        if st.form_submit_button("💾  Save Config", use_container_width=True):
             try:
                 update_config("current_month", new_month)
                 update_config("current_curator", new_curator)
@@ -563,7 +764,6 @@ def render_profile(user: str):
     pct      = round(n_finished / n_total * 100) if n_total > 0 else 0
     avg_r    = sum(ratings) / len(ratings) if ratings else None
 
-    # ── Stats row ────────────────────────────────────────────────────────────
     c1, c2, c3 = st.columns(3)
     with c1: _stat_card(n_finished, "Books Finished")
     with c2: _stat_card(f"{pct}%", "Completion Rate")
@@ -571,7 +771,6 @@ def render_profile(user: str):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── All member avg ratings for critic badges ──────────────────────────────
     all_member_avgs = {}
     if not checkins_df.empty and "Name" in checkins_df.columns and "Rating" in checkins_df.columns:
         for name, grp in checkins_df.groupby("Name"):
@@ -582,7 +781,6 @@ def render_profile(user: str):
     lowest_rater  = min(all_member_avgs, key=all_member_avgs.get) if all_member_avgs else None
     highest_rater = max(all_member_avgs, key=all_member_avgs.get) if all_member_avgs else None
 
-    # ── Badge definitions ─────────────────────────────────────────────────────
     _section("🏆", "Your Badges")
 
     special_badges = [
@@ -613,7 +811,6 @@ def render_profile(user: str):
                     unsafe_allow_html=True,
                 )
 
-    # ── Monthly book badges ───────────────────────────────────────────────────
     if not checkins_df.empty and "BookTitle" in checkins_df.columns:
         all_books = checkins_df["BookTitle"].dropna().unique()
         finished_books = set()
@@ -646,7 +843,7 @@ def render_profile(user: str):
                         f'{status_html}</div>',
                         unsafe_allow_html=True,
                     )
-    # ── Recent check-ins ─────────────────────────────────────────────────────
+
     if not user_df.empty:
         _section("📖", "Your Check-ins")
         show_cols = [c for c in ["BookTitle", "Finished", "DaysToRead", "Format", "Rating", "Timestamp"] if c in user_df.columns]

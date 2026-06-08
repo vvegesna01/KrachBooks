@@ -118,3 +118,117 @@ finished_months # list of month names they completed
 
 1. Total pages read
 2. 
+# KrachBooks — Setup Guide
+
+## Google Sheets Schema
+
+Your spreadsheet needs these **exact worksheet tab names**:
+
+### `Config` sheet
+| Key | Value |
+|---|---|
+| current_book | The Midnight Library |
+| current_curator | Keval |
+| current_month | June 2026 |
+| voting_open | False |
+
+### `Checkins` sheet (columns in this exact order)
+```
+Timestamp | BookTitle | Name | Finished | DaysToRead | Format | Rating | Quote | Feedback
+```
+
+### `Nominations` sheet
+```
+Month | BookTitle | NominatedBy | CoverURL
+```
+
+### `Votes` sheet
+```
+Month | BookTitle | VotedBy
+```
+
+---
+
+## Streamlit Secrets (`secrets.toml`)
+
+```toml
+[app]
+password = "your_club_password_here"
+
+[gcp_service_account]
+type = "service_account"
+project_id = "your-project-id"
+private_key_id = "..."
+private_key = "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n"
+client_email = "your-service-account@your-project.iam.gserviceaccount.com"
+client_id = "..."
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
+```
+
+Make sure the service account email has **Editor** access to the spreadsheet.
+
+---
+
+## File Structure
+
+```
+krachbooks/
+├── app.py               ← entry point
+├── styles.css           ← all styling
+├── utils/
+│   ├── __init__.py
+│   ├── gsheet_ops.py    ← read/write helpers
+│   ├── book_api.py      ← OpenLibrary cover fetching
+│   └── ui.py            ← all tab renderers
+└── assets/              ← badge images (svg or png)
+    ├── bookworm.svg
+    ├── speed_dragon.svg
+    ├── curator.svg
+    ├── loyalist.svg
+    ├── harsh_critic.svg
+    ├── golden_retriever.svg
+    └── books/
+        ├── book_1.svg
+        ├── book_2.svg
+        └── ...
+```
+
+---
+
+## Adding a New Member
+
+Edit the `MEMBERS` list in `utils/ui.py`.
+
+## Adding a New Curator
+
+Edit the `CURATORS` list in `utils/ui.py` — lowercase names only.
+
+---
+
+## How the Voting Flow Works
+
+1. Curator opens the **✨ Curator** tab → adds 2–3 nominations
+2. Curator clicks **Open Voting** — sets `voting_open = True` in Config
+3. Members see the **🗳️ Vote** tab with book covers and a radio button
+4. Members can change their vote; only the latest counts (upsert logic)
+5. Curator clicks **Close Voting & Pick Winner** → tallies votes, sets `current_book`, closes voting
+6. Members now see "Voting closed, this month's book is X"
+
+## How Check-ins Work
+
+- Any member can fill the check-in form at any time during the month
+- Submitting again **overwrites** their previous entry for that book (no duplicates)
+- The Dashboard aggregates all check-ins for stats
+
+## Cache
+
+`get_data()` caches for 30 seconds. After writing, it clears the cache automatically.
+For manual refresh, use `st.cache_data.clear()` or just wait 30s.
+
+
+MEMBERS = ["Ani", "BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "Aryan", "OJ", "Pooja", "Pranjal", 
+        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"
+]
