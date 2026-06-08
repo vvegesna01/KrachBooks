@@ -56,6 +56,7 @@ from utils.ui import (
     render_curator_panel, render_profile,
     MEMBERS,
 )
+from utils.club_constitution import render_constitution
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -72,7 +73,7 @@ voting_open     = config.get("voting_open", "False").lower() == "true"
 
 # ── User selection ────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 👤 Who are you?")
+    st.markdown("### Who goes there? 👀")
     user = st.selectbox(
         "Select your name",
         ["— select —"] + MEMBERS,
@@ -103,7 +104,7 @@ checkins_df = get_data("Checkins")
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 vote_tab_label = "✨ Curator" if is_curator else "🗳️ Vote"
-tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile"])
+tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile", "📜 Club Constitution"])
 
 with tabs[0]:
     render_dashboard(checkins_df, config)
@@ -126,3 +127,6 @@ with tabs[3]:
 
 with tabs[4]:
     render_profile(user)
+
+with tabs[5]:
+    render_constitution()
