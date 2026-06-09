@@ -21,12 +21,12 @@ ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
 CURATORS = [
     "lightspeed", "pranjal", "aryan", "kd", "ani", "shivani",
-    "keval", "maya", "detpleasant2000",
+    "maya", "detpleasant2000"
 ]
 
 MEMBERS = [
-    "DetPleasant2000", "Ani", "Pranjal", "Satabdiya", "OJ",
-    "BO$$", "Nitarek", "Lightspeed", "RishRash", "Maya", "Pooja",
+    "Ani", "Aryan", "BO$$", "DetPleasant2000", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", "RishRash", "Satabdiya"
+    "Shivani", "Smrithi"
 ]
 
 THEME = {

@@ -35,8 +35,8 @@ def render_constitution():
 
         st.markdown("""
         * **Attendance:** You are always welcome at the discussion, regardless of how much of the book you've finished.
-        * **Monthly Check-In:** All members should complete the Check-In form before the meeting, even if they did not finish the book.
-        * **Suggestions:** Use the Suggestions section of the Check-In form to propose future books, themes, or improvements.
+        * **Monthly Check-In:** All members should complete the Check-In form before the meeting, the form for that month is closed thereafter."
+        * **Suggestions:** Use the Suggestions section of the Check-In form to give feedback or propose improvements.
         """)
 
     # Rules
@@ -44,7 +44,7 @@ def render_constitution():
         st.markdown("""
         - Don't be a jerk.
         - Respect differing opinions and reading experiences.
-        - Tangents are encouraged, provided they eventually find their way home.
+        - Tangents are encouraged!
         - Avoid major spoilers unless everyone has agreed they're fair game.
         """)
 
@@ -61,7 +61,7 @@ def render_constitution():
     # Amendments
     with st.expander("🪴 Amendments"):
         st.markdown("""
-        This constitution is living document. If the club decides a rule no longer serves us, we can discuss it during a regular meeting and update the constitution accordingly.
+        This constitution is a living document. If the club decides a rule no longer serves us, we can discuss it during a regular meeting and update the constitution accordingly.
         """)
 
     st.divider()
