@@ -358,13 +358,14 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict):
     total_members = df[col_map["name"]].nunique() if "name" in col_map else "—"
     total_entries = len(df)
     n_finished    = int((df[finished_col].str.lower() == "yes").sum()) if finished_col else 0
+    n_books       = df[book_col].nunique() if book_col else "—"
     avg_rating    = df[rating_col].dropna().astype(float).mean() if rating_col else None
     avg_str       = f"{avg_rating:.1f} ⭐" if avg_rating and not math.isnan(avg_rating) else "—"
     pct_done      = round(n_finished / total_entries * 100, 1) if total_entries else 0
 
     c1, c2, c3, c4 = st.columns(4)
     with c1: _stat_card(total_members, "Members")
-    with c2: _stat_card(n_finished, "Finished")
+    with c2: _stat_card(n_books, "Books Read")
     with c3: _stat_card(f"{pct_done}%", "Completion Rate")
     with c4: _stat_card(avg_str, "Avg Rating")
 
