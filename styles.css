@@ -1,25 +1,18 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    KrachBooks — Stylesheet
-   Palette: tomato / grape-soda / pacific-blue / pale-oak on deep mauve
+   Palette: tomato / grape / pacific-blue / pale-oak on deep mauve
 ───────────────────────────────────────────────────────────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-/* ROOT VARIABLES */
+/* ── ROOT VARIABLES ────────────────────────────────────────────────────────── */
 :root {
-    --tomato:      #ff6542;
-    --grape:       #88498f;
-    --pacific:     #779fa1;
-    --pale-oak:    #e0cba8;
-    --mauve:       #564154;
-
-    /* Semantic aliases — same variable names so nothing else needs to change */
-    --caramel:    #ff6542;   /* tomato  — primary accent */
-    --gold:       #e0cba8;   /* pale-oak — section titles, secondary */
-    --khaki:      #779fa1;   /* pacific-blue — tertiary */
+    --caramel:    #ff6542;
+    --gold:       #e0cba8;
+    --pacific:    #779fa1;
+    --grape:      #88498f;
     --ash:        #a89faa;
-    --ash-2:      #8fb8b9;
     --bg:         #1a1318;
     --surface:    #241b23;
     --surface-2:  #2e2230;
@@ -29,14 +22,14 @@
     --radius:     10px;
 }
 
-/* BASE */
+/* ── BASE ──────────────────────────────────────────────────────────────────── */
 body, .stApp {
     background-color: var(--bg) !important;
     color: var(--text) !important;
     font-family: 'DM Sans', sans-serif;
 }
 
-/* HEADER */
+/* ── HEADER ────────────────────────────────────────────────────────────────── */
 .main-header {
     font-family: 'Fraunces', serif;
     font-size: 3rem;
@@ -48,14 +41,13 @@ body, .stApp {
 }
 
 .sub-header {
-    font-family: 'DM Sans', sans-serif;
     font-size: 1rem;
     color: var(--text-muted);
     margin-bottom: 1.5rem;
     letter-spacing: 0.5px;
 }
 
-/* SECTION TITLES */
+/* ── SECTION TITLES ────────────────────────────────────────────────────────── */
 .section-title {
     font-family: 'Fraunces', serif;
     font-size: 1.4rem;
@@ -70,19 +62,32 @@ body, .stApp {
     gap: 8px;
 }
 
-/* STAT CARDS */
+/* ── STAT CARDS — glassmorphism ────────────────────────────────────────────── */
 .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 20px;
+    background: linear-gradient(
+        135deg,
+        rgba(46, 34, 48, 0.7),
+        rgba(36, 27, 35, 0.5)
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(136, 73, 143, 0.35);
+    border-top: 1px solid rgba(224, 203, 168, 0.15);  /* subtle highlight */
+    padding: 22px 20px;
     border-radius: var(--radius);
     text-align: center;
-    transition: transform 0.2s, border-color 0.2s;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--caramel);
+    transform: translateY(-3px);
+    border-color: rgba(255, 101, 66, 0.5);
+    box-shadow:
+        0 8px 32px rgba(255, 101, 66, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .stat-number {
@@ -94,14 +99,14 @@ body, .stApp {
 }
 
 .stat-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 6px;
+    margin-top: 8px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
 }
 
-/* COVER WALL */
+/* ── COVER WALL ────────────────────────────────────────────────────────────── */
 .cover-frame {
     transition: transform 0.2s, box-shadow 0.2s;
     border: 2px solid var(--border);
@@ -136,7 +141,7 @@ body, .stApp {
     padding: 8px;
 }
 
-/* CURRENT BOOK BANNER */
+/* ── CURRENT BOOK BANNER ───────────────────────────────────────────────────── */
 .current-book-banner {
     background: linear-gradient(135deg, rgba(255,101,66,0.1), rgba(136,73,143,0.07));
     border: 1px solid var(--border);
@@ -148,7 +153,7 @@ body, .stApp {
     margin-bottom: 1.5rem;
 }
 
-/* NOMINATION CARDS */
+/* ── NOMINATION / COUNTRY CARDS ────────────────────────────────────────────── */
 .nom-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -160,78 +165,48 @@ body, .stApp {
     color: var(--text);
 }
 
-/* NOMINEE CARDS (voting tab) */
-.nominee-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-
-.nominee-card {
+.country-card {
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    flex: 1 1 160px;
-    max-width: 220px;
-    text-align: center;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.nominee-card:hover {
-    border-color: var(--caramel);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(255,101,66,0.15);
-}
-
-.nominee-card--voted {
-    border-color: var(--caramel) !important;
-    background: rgba(255,101,66,0.07);
-    box-shadow: 0 0 0 3px rgba(255,101,66,0.2);
-}
-
-.nominee-cover {
-    border-radius: 6px;
-    width: 100px;
-    height: 148px;
-    object-fit: cover;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
     margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.nominee-cover-placeholder {
-    width: 100px;
-    height: 148px;
-    background: var(--surface-2);
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin: 0 auto 10px auto;
-    padding: 8px;
-}
-
-.nominee-title {
-    font-family: 'Fraunces', serif;
-    font-size: 0.9rem;
+    text-align: left;
+    font-size: 0.85rem;
     color: var(--text);
-    font-weight: 600;
-    margin-bottom: 4px;
-    line-height: 1.3;
 }
 
-.nominee-voted-badge {
-    display: inline-block;
-    background: var(--caramel);
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-top: 6px;
-    letter-spacing: 0.5px;
+.country-card-name {
+    font-family: 'Fraunces', serif;
+    color: var(--gold);
+    font-size: 0.95rem;
+    margin-bottom: 6px;
 }
 
-/* BADGES */
+.country-book-item {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+/* ── QUOTE CARDS ───────────────────────────────────────────────────────────── */
+.quote-card {
+    background: var(--surface);
+    border-left: 4px solid var(--caramel);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    font-style: italic;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.quote-attr {
+    color: var(--text-muted);
+    font-style: normal;
+}
+
+/* ── BADGES ────────────────────────────────────────────────────────────────── */
 .badge-wrap {
     text-align: center;
     padding: 16px 8px;
@@ -277,7 +252,7 @@ body, .stApp {
     font-size: 0.75rem;
 }
 
-/* AWARD CARDS */
+/* ── AWARD CARDS ───────────────────────────────────────────────────────────── */
 .award-card {
     padding: 16px;
     border-radius: var(--radius);
@@ -302,24 +277,11 @@ body, .stApp {
     margin-top: 10px;
 }
 
-.award-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.award-desc        { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 .award-winner-label { color: var(--caramel); font-weight: 600; margin-top: 8px; font-size: 0.85rem; }
-.award-holder { color: var(--text-muted); font-size: 0.8rem; margin-top: 8px; }
+.award-holder       { color: var(--text-muted); font-size: 0.8rem; margin-top: 8px; }
 
-/* QUOTE CARDS */
-.quote-card {
-    background: var(--surface);
-    border-left: 4px solid var(--caramel);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    font-style: italic;
-    color: var(--text);
-    font-size: 0.9rem;
-    line-height: 1.6;
-}
-
-/* CURATOR STEP CARDS */
+/* ── CURATOR STEP CARDS ────────────────────────────────────────────────────── */
 .curator-step-card {
     display: flex;
     gap: 20px;
@@ -351,11 +313,184 @@ body, .stApp {
 
 .curator-step-body { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
 
-/* PAGE INTRO */
-.page-intro { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+/* ── PAGE INTRO ────────────────────────────────────────────────────────────── */
+.page-intro    { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
 .page-intro-sm { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
 
-/* STREAMLIT OVERRIDES */
+/* ── NOMINEE CARDS (voting tab) ────────────────────────────────────────────── */
+.nominee-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.nominee-card:hover {
+    border-color: var(--caramel);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(255,101,66,0.15);
+}
+
+.nominee-card--voted {
+    border-color: var(--caramel) !important;
+    background: rgba(255,101,66,0.07);
+    box-shadow: 0 0 0 3px rgba(255,101,66,0.2);
+}
+
+
+/* ── BOOK SHELF ────────────────────────────────────────────────────────────── */
+.shelf-row-wrap {
+    margin-bottom: 8px;
+}
+
+.shelf-books-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding: 16px 12px 0;
+    background: rgba(26, 19, 24, 0.6);
+    border-radius: 8px 8px 0 0;
+}
+
+.shelf-book-slot {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.shelf-book {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 2px 5px 5px 2px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: -3px 3px 10px rgba(0,0,0,0.65), inset -2px 0 5px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shelf-book:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: -3px 12px 22px rgba(0,0,0,0.75), inset -2px 0 5px rgba(0,0,0,0.2);
+}
+
+.shelf-book--selected {
+    transform: translateY(-10px);
+    box-shadow: -3px 14px 28px rgba(255,101,66,0.45), 0 0 0 2px #ff6542, inset -2px 0 5px rgba(0,0,0,0.2);
+}
+
+.shelf-book--selected:hover {
+    transform: translateY(-12px) scale(1.03);
+}
+
+.shelf-book-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.shelf-book-spine {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: rgba(0,0,0,0.28);
+    border-right: 1px solid rgba(255,255,255,0.04);
+}
+
+.shelf-book-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 6px;
+    line-height: 1.3;
+}
+
+.shelf-plank {
+    height: 14px;
+    background: linear-gradient(180deg, #7a5c38 0%, #4e3a22 55%, #3a2a18 100%);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+    position: relative;
+    margin-bottom: 28px;
+}
+
+.shelf-plank-shadow {
+    position: absolute;
+    bottom: -8px; left: 0; right: 0;
+    height: 8px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), transparent);
+    border-radius: 0 0 4px 4px;
+}
+
+/* ── CURATOR STEP CARDS (new design) ───────────────────────────────────────── */
+.curator-step-card {
+    display: flex;
+    align-items: stretch;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.curator-step-card:hover {
+    border-color: rgba(136, 73, 143, 0.55);
+}
+
+.curator-step-number-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    background: rgba(136, 73, 143, 0.06);
+    border-right: 1px solid rgba(136, 73, 143, 0.12);
+    padding: 16px 0;
+}
+
+.curator-step-big-num {
+    font-family: 'Fraunces', serif;
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: rgba(136, 73, 143, 0.22);
+    line-height: 1;
+    letter-spacing: -2px;
+    user-select: none;
+}
+
+.curator-step-content {
+    padding: 16px 20px;
+    flex: 1;
+}
+
+.curator-step-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.curator-step-body {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+}
+
+/* ── STREAMLIT OVERRIDES ───────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {
     background: var(--surface) !important;
     border-radius: var(--radius);
@@ -401,7 +536,7 @@ body, .stApp {
     font-weight: 600 !important;
 }
 
-/* Inputs & selects */
+/* Inputs */
 .stTextInput input,
 .stTextArea textarea,
 .stSelectbox > div > div,
@@ -417,11 +552,6 @@ body, .stApp {
 .stTextArea textarea:focus {
     border-color: var(--caramel) !important;
     box-shadow: 0 0 0 2px rgba(255,101,66,0.15) !important;
-}
-
-/* Slider */
-.stSlider [data-baseweb="slider"] {
-    color: var(--caramel) !important;
 }
 
 /* Sidebar */
@@ -447,5 +577,5 @@ body, .stApp {
     border-radius: var(--radius) !important;
 }
 
-/* Success / Info / Warning banners */
+/* Alerts */
 .stAlert { border-radius: var(--radius) !important; }
