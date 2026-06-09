@@ -25,7 +25,7 @@ CURATORS = [
 ]
 
 MEMBERS = [
-    "Ani", "Aryan", "BO$$", "DetPleasant2000", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", "RishRash", "Satabdiya"
+    "Ani", "Aryan", "BO$$", "DetPleasant2000", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", "RishRash", "Satabdiya",
     "Shivani", "Smrithi"
 ]
 
