@@ -54,6 +54,7 @@ from utils.ui import (
     render_dashboard, render_cover_wall,
     render_checkin_form, render_voting_form,
     render_curator_panel, render_profile, render_world_map,
+    render_month_progress,
     MEMBERS,
 )
 from utils.club_constitution import render_constitution
@@ -108,6 +109,7 @@ vote_tab_label = "✨ Curator" if is_curator else "🗳️ Vote"
 tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile", "📜 Club Constitution"])
 
 with tabs[0]:
+    render_month_progress(checkins_df, config)
     render_dashboard(checkins_df, config)
 
 with tabs[1]:

@@ -20,12 +20,11 @@ from utils.gsheet_ops import (
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
 CURATORS = [
-    "lightspeed", "pranjal", "aryan", "kd", "ani", "shivani",
-    "keval", "maya", "detpleasant2000",
+    "Keeth", "pranjal", "aryan", "kd", "ani", "shivani", "maya", "detpleasant2000",
 ]
 
 
-MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", 
+MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "KD", "Kavya", "Keeth", "Maya", "OJ", "Pranjal", "Pooja", 
         "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"]
 
 
@@ -332,16 +331,65 @@ def render_world_map(checkins_df: pd.DataFrame):
             )
 
 
-# ── Dashboard / Stats ─────────────────────────────────────────────────────────
+# Month Progress -----------------------------------------------------------------
+def render_month_progress(checkins_df: pd.DataFrame, config: dict):
+    current_book = config.get("current_book", "")
+    month        = config.get("current_month", "This Month")
 
-def render_dashboard(checkins_df: pd.DataFrame, config: dict):
-    _section("📊", "Club Overview")
+    
+    _section("📅", f"{month} — Progress")
 
-    current_book = config.get("current_book", "—")
     st.markdown(
         f'<div class="current-book-banner">📖 Currently reading: <strong>{current_book}</strong></div>',
         unsafe_allow_html=True,
     )
+    if checkins_df.empty:
+        return
+
+    df = checkins_df.copy()
+    if "BookTitle" in df.columns and current_book:
+        df = df[df["BookTitle"].str.lower() == current_book.strip().lower()]
+
+    total_members = len(MEMBERS)
+    responded     = df["Name"].nunique() if "Name" in df.columns else 0
+    n_finished    = int((df["Finished"].str.lower() == "yes").sum()) if "Finished" in df.columns else 0
+    ratings       = pd.to_numeric(df["Rating"].dropna(), errors="coerce").dropna() if "Rating" in df.columns else pd.Series(dtype=float)
+    avg_r         = f"{ratings.mean():.1f} ⭐" if not ratings.empty else "—"
+
+    resp_pct     = round(responded / total_members * 100) if total_members else 0
+    fin_pct      = round(n_finished / responded * 100)    if responded   else 0
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown(
+            f'<div class="stat-card">'
+            f'<div class="stat-number">{responded} / {total_members}</div>'
+            f'<div class="stat-label">Responses in</div>'
+            f'<div style="height:6px;border-radius:4px;background:rgba(136,73,143,0.18);margin-top:10px;overflow:hidden">'
+            f'<div style="height:100%;width:{resp_pct}%;background:#ff6542;border-radius:4px"></div></div>'
+            f'<div class="stat-label" style="margin-top:5px">{resp_pct}% of members</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            f'<div class="stat-card">'
+            f'<div class="stat-number">{n_finished} / {responded}</div>'
+            f'<div class="stat-label">Finished reading</div>'
+            f'<div style="height:6px;border-radius:4px;background:rgba(136,73,143,0.18);margin-top:10px;overflow:hidden">'
+            f'<div style="height:100%;width:{fin_pct}%;background:#779fa1;border-radius:4px"></div></div>'
+            f'<div class="stat-label" style="margin-top:5px">{fin_pct}% of respondents</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with c3:
+        _stat_card(avg_r, f"Avg rating · {len(ratings)} so far")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+# ── Dashboard / Stats ─────────────────────────────────────────────────────────
+
+def render_dashboard(checkins_df: pd.DataFrame, config: dict):
+    _section("📊", "Club Overview")
 
     if checkins_df.empty:
         st.info("No check-in data yet.")
@@ -404,6 +452,76 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict):
                 )
                 fig2.update_layout(**_plot_layout())
                 st.plotly_chart(fig2, use_container_width=True)
+    
+    # ── Genre Breakdown ───────────────────────────────────────────────────────
+    books_df = get_data("Books")
+    if not books_df.empty and "Genre" in books_df.columns and "BookTitle" in books_df.columns:
+        genre_df = books_df[["BookTitle", "Genre"]].dropna(subset=["Genre"])
+        genre_df = genre_df[genre_df["Genre"].str.strip() != ""]
+
+        if not genre_df.empty:
+            genre_counts = genre_df["Genre"].value_counts().reset_index()
+            genre_counts.columns = ["Genre", "Count"]
+
+            g_col, r_col = st.columns(2)
+            with g_col:
+                fig_genre = px.pie(
+                    genre_counts,
+                    names="Genre",
+                    values="Count",
+                    color_discrete_sequence=THEME["palette"],
+                    hole=0.45,
+                )
+                fig_genre.update_traces(
+                    textposition="outside",
+                    textinfo="label+percent",
+                    textfont_color="#f2ece8",
+                )
+                fig_genre.update_layout(
+                    **_plot_layout(
+                        title="Books read by genre",
+                        showlegend=False,
+                        margin=dict(t=55, l=60, r=60, b=60),
+                    )
+                )
+                st.plotly_chart(fig_genre, use_container_width=True)
+
+            with r_col:
+                if book_col and rating_col:
+                    avg_by_book = (
+                        df.groupby(book_col)[rating_col]
+                        .apply(lambda x: pd.to_numeric(x, errors="coerce").mean())
+                        .dropna()
+                        .sort_values()
+                        .reset_index()
+                    )
+                    avg_by_book.columns = ["Book", "Avg Rating"]
+                    avg_by_book["Avg Rating"] = avg_by_book["Avg Rating"].round(2)
+
+                    fig_ratings = px.bar(
+                        avg_by_book,
+                        x="Avg Rating",
+                        y="Book",
+                        orientation="h",
+                        text="Avg Rating",
+                        color="Avg Rating",
+                        color_continuous_scale=[THEME["muted"], THEME["accent"]],
+                        range_color=[1, 5],
+                        title="Avg rating by book",
+                    )
+                    fig_ratings.update_traces(
+                        texttemplate="%{text:.2f} ⭐",
+                        textposition="outside",
+                    )
+                    fig_ratings.update_layout(
+                        **_plot_layout(
+                            xaxis=dict(range=[0, 5.8], gridcolor=THEME["grid"], color=THEME["muted"]),
+                            yaxis=dict(gridcolor=THEME["grid"], color=THEME["muted"]),
+                            coloraxis_showscale=False,
+                            showlegend=False,
+                        )
+                    )
+                    st.plotly_chart(fig_ratings, use_container_width=True)
 
     # ── Member Leaderboard ────────────────────────────────────────────────────
     _section("🏆", "Member Leaderboard")
@@ -862,7 +980,57 @@ def render_profile(user: str):
                         f'{status_html}</div>',
                         unsafe_allow_html=True,
                     )
+    # ── Reading Pace Chart ────────────────────────────────────────────────────
+    if not user_df.empty and "DaysToRead" in user_df.columns and "Finished" in user_df.columns:
+        pace_df = user_df[user_df["Finished"].str.lower() == "yes"].copy()
+        pace_df["DaysToRead"] = pd.to_numeric(pace_df["DaysToRead"], errors="coerce")
+        pace_df = pace_df.dropna(subset=["DaysToRead", "BookTitle"])
+        pace_df = pace_df[pace_df["DaysToRead"] > 0]
 
+        if len(pace_df) >= 2:
+            _section("⚡", "Reading Pace")
+            avg_days = pace_df["DaysToRead"].mean()
+            pace_df["Color"] = pace_df["DaysToRead"].apply(
+                lambda d: THEME["palette"][2] if d <= avg_days else THEME["accent"]
+            )
+            # Order by club book order if Timestamp available, else as-is
+            if "Timestamp" in pace_df.columns:
+                pace_df = pace_df.sort_values("Timestamp")
+
+            fig = px.bar(
+                pace_df,
+                x="BookTitle",
+                y="DaysToRead",
+                text="DaysToRead",
+                title="Days to finish each book",
+                color="Color",
+                color_discrete_map="identity",
+            )
+            fig.add_hline(
+                y=avg_days,
+                line_dash="dot",
+                line_color=THEME["gold"],
+                annotation_text=f"your avg · {avg_days:.0f}d",
+                annotation_font_color=THEME["gold"],
+                annotation_position="top left",
+            )
+            fig.update_traces(texttemplate="%{text}d", textposition="outside")
+            fig.update_layout(
+                **_plot_layout(
+                    xaxis_title="",
+                    yaxis_title="Days",
+                    showlegend=False,
+                    yaxis=dict(gridcolor=THEME["grid"], color=THEME["muted"]),
+                )
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown(
+                f'<p class="page-intro-sm" style="text-align:center">'
+                f'<span style="color:{THEME["palette"][2]}">■</span> faster than your avg &nbsp;'
+                f'<span style="color:{THEME["accent"]}">■</span> slower than your avg</p>',
+                unsafe_allow_html=True,
+            )
+        
     if not user_df.empty:
         _section("📖", "Your Check-ins")
         show_cols = [c for c in ["BookTitle", "Finished", "DaysToRead", "Format", "Rating", "Timestamp"] if c in user_df.columns]
