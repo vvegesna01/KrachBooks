@@ -53,10 +53,11 @@ from utils.gsheet_ops import get_data, get_config
 from utils.ui import (
     render_dashboard, render_cover_wall,
     render_checkin_form, render_voting_form,
-    render_curator_panel, render_profile,
+    render_curator_panel, render_profile, render_world_map,
     MEMBERS,
 )
 from utils.club_constitution import render_constitution
+
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -111,6 +112,9 @@ with tabs[0]:
 
 with tabs[1]:
     render_cover_wall(checkins_df)
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_world_map(checkins_df)
+
 
 with tabs[2]:
     render_checkin_form(user, config)
