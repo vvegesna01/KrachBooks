@@ -24,10 +24,10 @@ CURATORS = [
     "keval", "maya", "detpleasant2000",
 ]
 
-MEMBERS = [
-    "DetPleasant2000", "Ani", "Pranjal", "Satabdiya", "OJ",
-    "BO$$", "Nitarek", "Lightspeed", "RishRash", "Maya", "Pooja",
-]
+
+MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", 
+        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"]
+
 
 # Plotly chart theme — kept here since it drives figure objects, not HTML
 THEME = {
@@ -88,7 +88,7 @@ def _section(icon: str, title: str):
 
 # ── Cover Wall ────────────────────────────────────────────────────────────────
 
-def render_cover_wall(checkins_df: pd.DataFrame):
+def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
     _section("📚", "Book Cover Wall")
     st.markdown('<p class="page-intro-sm">Click a cover to explore that book\'s stats and quotes.</p>',
                 unsafe_allow_html=True)
@@ -102,30 +102,49 @@ def render_cover_wall(checkins_df: pd.DataFrame):
 
     books        = checkins_df["BookTitle"].dropna().unique()
     books_lookup = get_books_lookup()
-    COLS         = 6
+    COLS         = 4
 
     for row_start in range(0, len(books), COLS):
+        row_books = books[row_start: row_start + COLS]
+
+        # Build shelf HTML: covers sit on a wood plank
+        covers_html = ""
+        for book in row_books:
+            book_entry   = books_lookup.get(book.strip().lower(), {})
+            isbn         = book_entry.get("isbn", "")
+            meta         = get_book_info(book, isbn=isbn)
+            is_selected  = st.session_state.selected_book == book
+            selected_cls = " shelf-book--selected" if is_selected else ""
+
+            if meta and meta["cover_url"]:
+                img_html = f'<img src="{meta["cover_url"]}" class="shelf-book-img"/><div class="shelf-book-spine"></div>'
+            else:
+                img_html = f'<div class="shelf-book-placeholder">{book}</div><div class="shelf-book-spine"></div>'
+
+            covers_html += (
+                f'<div class="shelf-book-slot">' 
+                f'<div class="shelf-book{selected_cls}">{img_html}</div>' 
+                f'</div>'
+            )
+
+        st.markdown(
+            f'<div class="shelf-row-wrap">' 
+            f'<div class="shelf-books-row">{covers_html}</div>' 
+            f'<div class="shelf-plank"><div class="shelf-plank-shadow"></div></div>' 
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # Buttons row — Streamlit native so clicks work
         cols = st.columns(COLS)
-        for i, book in enumerate(books[row_start: row_start + COLS]):
-            book_entry  = books_lookup.get(book.strip().lower(), {})
-            isbn        = book_entry.get("isbn", "")
-            meta        = get_book_info(book, isbn=isbn)
+        for i, book in enumerate(row_books):
             is_selected = st.session_state.selected_book == book
-            frame_cls   = "cover-frame cover-frame--selected" if is_selected else "cover-frame"
-
             with cols[i]:
-                if meta and meta["cover_url"]:
-                    st.markdown(
-                        f'<div class="{frame_cls}"><img src="{meta["cover_url"]}" width="100%"/></div>',
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(f'<div class="cover-placeholder">{book}</div>', unsafe_allow_html=True)
-
                 btn_label = "✓ Selected" if is_selected else "View"
-                if st.button(btn_label, key=f"book_btn_{book}", use_container_width=True):
+                if st.button(btn_label, key=f"{key_prefix}_btn_{book}", use_container_width=True):
                     st.session_state.selected_book = None if is_selected else book
                     st.rerun()
+
 
     # ── Deep Dive Panel ───────────────────────────────────────────────────────
     selected     = st.session_state.selected_book
@@ -596,6 +615,15 @@ def render_curator_panel(user: str, config: dict):
     voting_open  = config.get("voting_open", "False").lower() == "true"
     current_book = config.get("current_book", "")
 
+    st.markdown(
+        '<div class="curator-step-card">' 
+        '<div class="curator-step-number-col"><span class="curator-step-big-num">01</span></div>' 
+        '<div class="curator-step-content">' 
+        '<div class="curator-step-title"><span>📚</span> Add Book Nominations</div>' 
+        '<div class="curator-step-body">Add 2–3 books for the club to vote on. Covers are fetched automatically.</div>' 
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
     with st.expander("📚 Step 1 — Add Book Nominations", expanded=True):
         with st.form("nom_form"):
             st.markdown("Add 2–3 books for the club to vote on.")
@@ -623,6 +651,15 @@ def render_curator_panel(user: str, config: dict):
                     with c2:
                         st.markdown(f"**{row['BookTitle']}**")
 
+    st.markdown(
+        '<div class="curator-step-card">' 
+        '<div class="curator-step-number-col"><span class="curator-step-big-num">02</span></div>' 
+        '<div class="curator-step-content">' 
+        '<div class="curator-step-title"><span>🗳️</span> Manage Voting</div>' 
+        '<div class="curator-step-body">Open voting for members, watch the live tally, then close to pick the winner automatically.</div>' 
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
     with st.expander("🗳️ Step 2 — Manage Voting", expanded=True):
         status_label = "🟢 Voting is OPEN" if voting_open else "🔴 Voting is CLOSED"
         st.markdown(f"**Status:** {status_label}")
@@ -670,6 +707,15 @@ def render_curator_panel(user: str, config: dict):
                 fig.update_layout(**_plot_layout())
                 st.plotly_chart(fig, use_container_width=True)
 
+    st.markdown(
+        '<div class="curator-step-card">' 
+        '<div class="curator-step-number-col"><span class="curator-step-big-num">03</span></div>' 
+        '<div class="curator-step-content">' 
+        '<div class="curator-step-title"><span>⚙️</span> Update Config</div>' 
+        '<div class="curator-step-body">Set the current month and hand off the curator role to whoever is up next.</div>' 
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
     with st.expander("⚙️ Step 3 — Update Config"):
         with st.form("config_form"):
             new_month   = st.text_input("Current Month (e.g. June 2026)", value=month)

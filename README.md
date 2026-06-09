@@ -229,6 +229,5 @@ Edit the `CURATORS` list in `utils/ui.py` — lowercase names only.
 For manual refresh, use `st.cache_data.clear()` or just wait 30s.
 
 
-MEMBERS = ["Ani", "BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "Aryan", "OJ", "Pooja", "Pranjal", 
-        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"
-]
+MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "Kavya", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", 
+        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"]

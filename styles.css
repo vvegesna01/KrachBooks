@@ -339,6 +339,157 @@ body, .stApp {
     box-shadow: 0 0 0 3px rgba(255,101,66,0.2);
 }
 
+
+/* ── BOOK SHELF ────────────────────────────────────────────────────────────── */
+.shelf-row-wrap {
+    margin-bottom: 8px;
+}
+
+.shelf-books-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding: 16px 12px 0;
+    background: rgba(26, 19, 24, 0.6);
+    border-radius: 8px 8px 0 0;
+}
+
+.shelf-book-slot {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.shelf-book {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 2px 5px 5px 2px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: -3px 3px 10px rgba(0,0,0,0.65), inset -2px 0 5px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shelf-book:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: -3px 12px 22px rgba(0,0,0,0.75), inset -2px 0 5px rgba(0,0,0,0.2);
+}
+
+.shelf-book--selected {
+    transform: translateY(-10px);
+    box-shadow: -3px 14px 28px rgba(255,101,66,0.45), 0 0 0 2px #ff6542, inset -2px 0 5px rgba(0,0,0,0.2);
+}
+
+.shelf-book--selected:hover {
+    transform: translateY(-12px) scale(1.03);
+}
+
+.shelf-book-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.shelf-book-spine {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: rgba(0,0,0,0.28);
+    border-right: 1px solid rgba(255,255,255,0.04);
+}
+
+.shelf-book-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 6px;
+    line-height: 1.3;
+}
+
+.shelf-plank {
+    height: 14px;
+    background: linear-gradient(180deg, #7a5c38 0%, #4e3a22 55%, #3a2a18 100%);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+    position: relative;
+    margin-bottom: 28px;
+}
+
+.shelf-plank-shadow {
+    position: absolute;
+    bottom: -8px; left: 0; right: 0;
+    height: 8px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), transparent);
+    border-radius: 0 0 4px 4px;
+}
+
+/* ── CURATOR STEP CARDS (new design) ───────────────────────────────────────── */
+.curator-step-card {
+    display: flex;
+    align-items: stretch;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.curator-step-card:hover {
+    border-color: rgba(136, 73, 143, 0.55);
+}
+
+.curator-step-number-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    background: rgba(136, 73, 143, 0.06);
+    border-right: 1px solid rgba(136, 73, 143, 0.12);
+    padding: 16px 0;
+}
+
+.curator-step-big-num {
+    font-family: 'Fraunces', serif;
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: rgba(136, 73, 143, 0.22);
+    line-height: 1;
+    letter-spacing: -2px;
+    user-select: none;
+}
+
+.curator-step-content {
+    padding: 16px 20px;
+    flex: 1;
+}
+
+.curator-step-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.curator-step-body {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+}
+
 /* ── STREAMLIT OVERRIDES ───────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {
     background: var(--surface) !important;
