@@ -15,7 +15,7 @@ def render_footer():
         )
 
         st.link_button(
-            "💡 Submit Feature Requests, View Roadmap",
+            "💡 Submit Feature Requests and Bug Reports",
             "https://krachbooks.canny.io",
         )
     with col2:
