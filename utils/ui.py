@@ -19,13 +19,11 @@ from utils.gsheet_ops import (
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
-CURATORS = [
-    "Keeth", "pranjal", "aryan", "kd", "ani", "shivani", "maya", "detpleasant2000",
-]
+CURATORS = ["Keeth", "Pranjal", "Aryan", "KD", "Ani", "Shivani", "Maya", "detpleasant2000", "Satabdiya",]
 
 
-MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "KD", "Kavya", "Keeth", "Maya", "OJ", "Pranjal", "Pooja", 
-        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"]
+MEMBERS = ["Test User", "Ani","Aryan","BO$$", "DetPleasant2000", "KD", "Kavya", "Keeth", "Maya", "OJ", "Pranjal", "Pooja", 
+        "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa",]
 
 
 # Plotly chart theme — kept here since it drives figure objects, not HTML
@@ -870,14 +868,102 @@ def render_profile(user: str):
     if not user_df.empty:
         if "Finished" in user_df.columns:
             n_finished = int((user_df["Finished"].str.lower() == "yes").sum())
-        if "DaysToRead" in user_df.columns:
-            speeds = pd.to_numeric(user_df["DaysToRead"].dropna(), errors="coerce").dropna()
-            if not speeds.empty:
-                fastest = float(speeds.min())
+        if (
+            "DaysToRead" in user_df.columns
+            and "Finished" in user_df.columns
+        ):
+            finished_reads = user_df[
+                user_df["Finished"].str.strip().str.lower() == "yes"
+            ].copy()
+
+        speeds = pd.to_numeric(
+            finished_reads["DaysToRead"],
+            errors="coerce"
+        ).dropna()
+
+        speeds = speeds[speeds > 0]
+
+        if not speeds.empty:
+            fastest = float(speeds.min())
         if "Rating" in user_df.columns:
             ratings = pd.to_numeric(user_df["Rating"].dropna(), errors="coerce").dropna().tolist()
 
+
     avg_r = sum(ratings) / len(ratings) if ratings else None
+
+    # ── Iron Resolve Badge ────────────────────────────────────────────────────────────────
+
+    completed = len(
+    user_df[
+        user_df["Finished"]
+        .str.lower()
+        .eq("yes")
+        ]
+    )
+
+    attempted = len(
+        user_df[
+            user_df["Finished"]
+            .str.lower()
+            .isin(["yes", "no", "dnf"])
+        ]
+    )
+
+    completion_rate = (
+        completed / attempted
+        if attempted > 0
+        else 0
+    )
+
+    iron_resolve = completion_rate >= 0.90
+
+
+    # ── Bard's Apprentice ────────────────────────────────────────────────────────────────
+    audiobooks_finished = 0
+
+    if (
+        "Format" in user_df.columns and
+        "Finished" in user_df.columns
+    ):
+        audiobook_mask = (
+            user_df["Format"]
+            .str.lower()
+            .eq("audiobook")
+        )
+
+        finished_mask = (
+            user_df["Finished"]
+            .str.lower()
+            .eq("yes")
+        )
+
+        audiobooks_finished = int(
+            (audiobook_mask & finished_mask).sum()
+        )
+
+    wandering_bard = audiobooks_finished >= 5
+
+    # ── Philosopher Badge ──────────────────────────────────────────────
+
+    quotes_submitted = 0
+
+    if "Quote" in user_df.columns:
+        valid_quotes = user_df["Quote"].fillna("").astype(str).str.strip()
+
+        valid_quotes = valid_quotes[
+            ~valid_quotes.str.lower().isin([
+                "",
+                "none",
+                "n/a",
+                "na",
+                "-",
+                "."
+            ])
+        ]
+
+        quotes_submitted = len(valid_quotes)
+
+    philosopher = quotes_submitted >= 7
 
     # ── Streak ────────────────────────────────────────────────────────────────
     all_books_ordered = (
@@ -921,10 +1007,13 @@ def render_profile(user: str):
     _section("🏆", "Your Badges")
 
     special_badges = [
-        ("curator",          "Trusted Curator",         user_clean in CURATORS),
+        ("curator", "Trusted Curator", user_clean in {c.strip().lower() for c in CURATORS}),
         ("speed_dragon",     "Speed Dragon (< 3 days)", fastest < 3),
-        ("loyalist",         "Loyal Krachhead (12+)",   n_finished >= 12),
+        ("loyalist",         "Loyal Krachhead (12+ books)",   n_finished >= 12),
         ("bookworm",         "Bookworm (6+ books)",     n_finished >= 6),
+        ("iron_resolve", "Iron Resolve (90%+ completion)", iron_resolve),
+        ("wandering_bard", "Bard's Apprentice (5 audiobooks)", wandering_bard),
+        ("philosopher", "Philosopher (7+ quotes)", philosopher),
         ("harsh_critic",     "Harsh Critic",            lowest_rater  is not None and user_clean == lowest_rater),
         ("golden_retriever", "Golden Retriever Reader", highest_rater is not None and user_clean == highest_rater),
     ]
@@ -980,6 +1069,7 @@ def render_profile(user: str):
                         f'{status_html}</div>',
                         unsafe_allow_html=True,
                     )
+    
     # ── Reading Pace Chart ────────────────────────────────────────────────────
     if not user_df.empty and "DaysToRead" in user_df.columns and "Finished" in user_df.columns:
         pace_df = user_df[user_df["Finished"].str.lower() == "yes"].copy()
