@@ -58,7 +58,7 @@ from utils.ui import (
     MEMBERS,
 )
 from utils.club_constitution import render_constitution
-
+from utils.footer import render_footer
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -86,11 +86,12 @@ with st.sidebar:
         # Role label uses config, not the hardcoded CURATORS list
         role_label = "✨ Curator" if user.strip().lower() == current_curator else "Member <3"
         st.markdown(f"**Role:** {role_label}")
-    st.markdown("---")
+    # st.markdown("---")
     if st.button("🔒 Log out"):
         st.session_state.authenticated = False
         st.session_state.pop("user", None)
         st.rerun()
+
 
 # ── Require user selection ────────────────────────────────────────────────────
 if "user" not in st.session_state or st.session_state.user == "— select —":
@@ -136,3 +137,5 @@ with tabs[4]:
 
 with tabs[5]:
     render_constitution()
+
+render_footer()
