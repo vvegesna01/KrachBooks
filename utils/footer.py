@@ -6,7 +6,7 @@ def render_footer():
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.info("🚀 Help shape KrachBooks")
+        st.subheader("🚀 Help shape KrachBooks")
 
         st.caption(
             """
