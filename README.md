@@ -2,12 +2,6 @@
 
 A dashboard for my book club! 
 
-# Pattern for google sheets data
-
-2025-01_[ISBN].csv → November 2025 / Project Hail Mary
-
-2025-02_[ISBN].csv → December 2025 / Everything is Tuberculosis
-
 
 # Badge System
 
@@ -87,37 +81,7 @@ Conditions you could build on
 The member's data is available before the badge list, so you can compute anything from the loaded CSVs:
 python
 
-# Already computed:
 
-n_finished      # how many books this member finished
-
-n_total         # total months in the club
-
-finished_months # list of month names they completed
-
-
-# More Ideas
-
-## Ideas for Badges
-
-1. Hype Train - first to finish the book club book 3 times
-2. Quote Machine - sends in the most quotes
-3. Harsh Critic - (all ratings are below avg rating for that month, basically lowest average ratings.)
-4. Golden Retriever Reader - Highest average ratings
-5. Most Influential Voter - the person whose vote won the most amount of times?
-6. Reading Streak Badges - 3 months, 6 months, 12 months (I already have bookworm for 5 months and loyal reader for 12 months)
-
-## Badges for books?
-
-1. Most Abandoned Book
-2. Highest Rating Variance: Club Civil War Award
-3. Most Hated Book
-
-
-## Personal Stats 
-
-1. Total pages read
-2. 
 # KrachBooks — Setup Guide
 
 ## Google Sheets Schema
@@ -169,32 +133,6 @@ client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
 ```
 
 Make sure the service account email has **Editor** access to the spreadsheet.
-
----
-
-## File Structure
-
-```
-krachbooks/
-├── app.py               ← entry point
-├── styles.css           ← all styling
-├── utils/
-│   ├── __init__.py
-│   ├── gsheet_ops.py    ← read/write helpers
-│   ├── book_api.py      ← OpenLibrary cover fetching
-│   └── ui.py            ← all tab renderers
-└── assets/              ← badge images (svg or png)
-    ├── bookworm.svg
-    ├── speed_dragon.svg
-    ├── curator.svg
-    ├── loyalist.svg
-    ├── harsh_critic.svg
-    ├── golden_retriever.svg
-    └── books/
-        ├── book_1.svg
-        ├── book_2.svg
-        └── ...
-```
 
 ---
 

@@ -50,15 +50,27 @@ if not st.session_state.authenticated:
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 from utils.gsheet_ops import get_data, get_config
-from utils.ui import (
-    render_dashboard, render_cover_wall,
-    render_checkin_form, render_voting_form,
-    render_curator_panel, render_profile, render_world_map,
-    render_month_progress,
-    MEMBERS,
-)
+# from utils.ui import (
+#     render_dashboard, render_cover_wall,
+#     render_checkin_form, render_voting_form,
+#     render_curator_panel, render_profile, render_world_map,
+#     render_month_progress,
+#     MEMBERS,
+# )
+from ui._shared import MEMBERS, CURATORS
+from ui.dashboard import render_dashboard, render_month_progress
+from ui.forms import render_checkin_form, render_voting_form
+from ui.curator import render_curator_panel
+from ui.cover_wall import render_cover_wall
+from ui.world_map import render_world_map
+from ui.profile import render_profile
 from utils.club_constitution import render_constitution
-from utils.footer import render_footer
+from ui.footer import render_footer
+
+# ── Header ────────────────────────────────────────────────────────────────────
+import base64
+from pathlib import Path
+
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -66,7 +78,6 @@ st.markdown(
     '<div class="sub-header">some krached stats, and badges</div>',
     unsafe_allow_html=True,
 )
-
 # ── Load config first so we can determine role before anything else ───────────
 config          = get_config()
 current_curator = config.get("current_curator", "").strip().lower()
