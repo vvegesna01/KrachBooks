@@ -25,6 +25,5 @@ def render_footer():
             label="Keerthana Vegesna",
             icon="👩‍💻",
         )
-
-    st.markdown("---")
-    st.caption("© 2026 Krach Club • Version 2.0")
+        st.caption("© 2026 Krach Club • Version 2.0")
+    
