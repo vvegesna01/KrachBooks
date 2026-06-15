@@ -92,7 +92,7 @@ def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
         author     = (meta or {}).get("author", "")
 
         st.markdown("<hr>", unsafe_allow_html=True)
-        _section("🔍", selected)
+        section("🔍", selected)
 
         cover_col, info_col = st.columns([1, 4])
         with cover_col:
@@ -112,10 +112,10 @@ def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
 
             st.markdown("<br>", unsafe_allow_html=True)
             c1, c2, c3, c4 = st.columns(4)
-            with c1: _stat_card(n_total,    "Responses")
-            with c2: _stat_card(n_finished, "Finished")
-            with c3: _stat_card(f"{pct}%",  "Completion")
-            with c4: _stat_card(avg_str,    "Avg Rating")
+            with c1: stat_card(n_total,    "Responses")
+            with c2: stat_card(n_finished, "Finished")
+            with c3: stat_card(f"{pct}%",  "Completion")
+            with c4: stat_card(avg_str,    "Avg Rating")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -127,7 +127,7 @@ def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
                     title="Rating Distribution",
                     color_discrete_sequence=[THEME["accent"]],
                 )
-                fig_hist.update_layout(**_plot_layout(xaxis_title="Rating", yaxis_title="Count"))
+                fig_hist.update_layout(**plot_layout(xaxis_title="Rating", yaxis_title="Count"))
                 st.plotly_chart(fig_hist, use_container_width=True)
 
         with chart_r:
@@ -139,10 +139,10 @@ def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
                     title="Format Breakdown",
                     color_discrete_sequence=THEME["palette"],
                 )
-                fig_fmt.update_layout(**_plot_layout())
+                fig_fmt.update_layout(**plot_layout())
                 st.plotly_chart(fig_fmt, use_container_width=True)
 
-        _section("👥", "Member Responses")
+        section("👥", "Member Responses")
         show_cols = [c for c in ["Name", "Finished", "DaysToRead", "Format", "Rating"] if c in book_df.columns]
         st.dataframe(book_df[show_cols].reset_index(drop=True), use_container_width=True, hide_index=True)
 
@@ -150,7 +150,7 @@ def render_cover_wall(checkins_df: pd.DataFrame, key_prefix: str = "wall"):
             quotes = book_df[["Name", "Quote"]].dropna(subset=["Quote"])
             quotes = quotes[~quotes["Quote"].str.strip().str.lower().isin(["", "nan", "none"])]
             if not quotes.empty:
-                _section("💬", "Quotes & Reviews")
+                section("💬", "Quotes & Reviews")
                 for _, row in quotes.iterrows():
                     quote = str(row["Quote"]).strip()
                     name  = str(row["Name"]).strip()
