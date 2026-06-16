@@ -16,9 +16,10 @@ from ._shared import MEMBERS, THEME, plot_layout, stat_card, section
 
 def render_month_progress(checkins_df: pd.DataFrame, config: dict) -> None:
     current_book = config.get("current_book", "")
-    month        = config.get("current_month", "This Month")
+    month = config.get("current_month", "This Month")
 
     section("📅", f"{month} — Progress")
+
     st.markdown(
         f'<div class="current-book-banner">📖 Currently reading: <strong>{current_book}</strong></div>',
         unsafe_allow_html=True,
@@ -32,16 +33,16 @@ def render_month_progress(checkins_df: pd.DataFrame, config: dict) -> None:
         df = df[df["BookTitle"].str.lower() == current_book.strip().lower()]
 
     total_members = len(MEMBERS)
-    responded     = df["Name"].nunique() if "Name" in df.columns else 0
-    n_finished    = int((df["Finished"].str.lower() == "yes").sum()) if "Finished" in df.columns else 0
-    ratings       = (
+    responded = df["Name"].nunique() if "Name" in df.columns else 0
+    n_finished = int((df["Finished"].str.lower() == "yes").sum()) if "Finished" in df.columns else 0
+    ratings = (
         pd.to_numeric(df["Rating"].dropna(), errors="coerce").dropna()
         if "Rating" in df.columns
         else pd.Series(dtype=float)
     )
-    avg_r    = f"{ratings.mean():.1f} ⭐" if not ratings.empty else "—"
+    avg_r = f"{ratings.mean():.1f} ⭐" if not ratings.empty else "—"
     resp_pct = round(responded / total_members * 100) if total_members else 0
-    fin_pct  = round(n_finished / responded * 100)    if responded   else 0
+    fin_pct = round(n_finished / responded * 100) if responded else 0
 
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -50,7 +51,7 @@ def render_month_progress(checkins_df: pd.DataFrame, config: dict) -> None:
             f'<div class="stat-number">{responded} / {total_members}</div>'
             f'<div class="stat-label">Responses in</div>'
             f'<div style="height:6px;border-radius:4px;background:rgba(136,73,143,0.18);margin-top:10px;overflow:hidden">'
-            f'<div style="height:100%;width:{resp_pct}%;background:#ff6542;border-radius:4px"></div></div>'
+            f'<div style="height:100%;width:{resp_pct}%;background:#f9b14a;border-radius:4px"></div></div>'
             f'<div class="stat-label" style="margin-top:5px">{resp_pct}% of members</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -96,7 +97,7 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict) -> None:
     pct_done      = round(n_finished / total_entries * 100, 1) if total_entries else 0
 
     c1, c2, c3, c4 = st.columns(4)
-    with c1: stat_card(total_members, "Members")
+    with c1: stat_card(total_members, "Active Members")
     with c2: stat_card(n_books,       "Books Read")
     with c3: stat_card(f"{pct_done}%","Completion Rate")
     with c4: stat_card(avg_str,       "Avg Rating")
@@ -114,7 +115,7 @@ def render_dashboard(checkins_df: pd.DataFrame, config: dict) -> None:
         with col_l:
             fig = px.bar(
                 book_stats, x="Book", y="% Finished", text="% Finished",
-                color="% Finished", color_continuous_scale=["#779fa1", "#ff6542"],
+                color="% Finished", color_continuous_scale=["#779fa1", "#f9b14a"],
                 title="Completion Rate by Book",
             )
             fig.update_traces(texttemplate="%{text}%", textposition="outside")

@@ -1,5 +1,5 @@
 """
-ui/profile.py — User profile: stats, badges, reading pace chart, check-in history.
+ui/profile.py — User profile: stats, XP level, badges, reading pace chart, check-in history.
 """
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ import plotly.express as px
 import streamlit as st
 
 from utils.gsheet_ops import get_data
-
 from ._shared import CURATORS, THEME, load_badge_img, plot_layout, stat_card, section
 
 
@@ -24,43 +23,107 @@ def render_profile(user: str) -> None:
 
     user_df = checkins_df[checkins_df["Name"].str.lower() == user_clean].copy()
 
-    stats        = _compute_user_stats(user_df)
-    all_member_avgs = _compute_all_member_avg_ratings(checkins_df)
-    badges       = _compute_badges(user_clean, user_df, stats, all_member_avgs)
+    stats               = _compute_user_stats(user_df)
+    stats["streak"]     = _compute_streak(user_df, checkins_df)
+    all_member_avgs     = _compute_all_member_avg_ratings(checkins_df)
+    badges              = _compute_badges(user_clean, user_df, stats, all_member_avgs)
+    lvl_data            = _calculate_user_level(stats, user_df)
 
     # ── Stats row ─────────────────────────────────────────────────────────────
-    c1, c2, c3 = st.columns(3)
     avg_r = stats["avg_rating"]
-    with c1: stat_card(stats["n_finished"],                       "Books Finished")
-    with c2: stat_card(f"{stats['streak']} 🔥",                  "Current Streak")
-    with c3: stat_card(f"{avg_r:.2f}⭐" if avg_r else "—",       "Your Avg Rating")
+    c1, c2, c3 = st.columns(3)
+    with c1: stat_card(stats["n_finished"],                  "Books Finished")
+    with c2: stat_card(f"{stats['streak']} 🔥",             "Current Streak")
+    with c3: stat_card(f"{avg_r:.2f} ⭐" if avg_r else "—", "Avg Rating")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Level card ────────────────────────────────────────────────────────────
+    pct      = int(lvl_data["progress_pct"] * 100)
+    st.markdown(
+        f'''<div style="
+                background:linear-gradient(135deg,rgba(46,34,48,0.85),rgba(36,27,35,0.6));
+                border:1px solid var(--border);
+                border-top:1px solid rgba(224,203,168,0.18);
+                border-radius:var(--radius);
+                padding:20px 24px;
+                margin-bottom:8px;
+                box-shadow:0 4px 24px rgba(0,0,0,0.35);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div>
+                    <span style="font-family:'Fraunces',serif;font-size:2rem;font-weight:700;
+                                 color:var(--caramel);line-height:1;">Level {lvl_data["level"]}</span>
+                    <span style="font-family:'Fraunces',serif;font-size:0.95rem;color:var(--gold);
+                                 margin-left:12px;">{lvl_data["title"]}</span>
+                </div>
+                <div style="font-size:0.8rem;color:var(--text-muted);letter-spacing:0.05em;">
+                    {lvl_data["total_xp"]} XP total
+                </div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:999px;height:8px;overflow:hidden;
+                        border:1px solid rgba(136,73,143,0.2);">
+                <div style="width:{pct}%;height:100%;background:linear-gradient(90deg,var(--caramel),var(--grape));
+                             border-radius:999px;transition:width 0.4s ease;"></div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;text-align:right;">
+                {lvl_data["xp_in_level"]} / {lvl_data["level_cap"]} XP to Level {lvl_data["level"] + 1}
+            </div>
+        </div>''',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Remaining sections ────────────────────────────────────────────────────
     _render_achievement_badges(user_clean, badges)
     _render_monthly_collection(user_df, checkins_df)
     _render_pace_chart(user_df)
     _render_checkin_history(user_df)
 
 
-# ── Stats computation ─────────────────────────────────────────────────────────
+# ── Computation helpers ───────────────────────────────────────────────────────
+
+def _calculate_user_level(stats: dict, user_df: pd.DataFrame) -> dict:
+    """XP = 200 per finished book + 50 per streak book + 25 per quote. 500 XP per level."""
+    books_xp  = stats["n_finished"] * 200
+    streak_xp = stats["streak"] * 50
+
+    quotes_count = 0
+    if "Quote" in user_df.columns:
+        valid = user_df["Quote"].fillna("").astype(str).str.strip()
+        quotes_count = len(valid[~valid.str.lower().isin(["", "none", "n/a", "na", "-", "."])])
+    quotes_xp = quotes_count * 25
+
+    total_xp  = books_xp + streak_xp + quotes_xp
+    level_cap = 500
+    level     = (total_xp // level_cap) + 1
+    xp_in_lvl = total_xp % level_cap
+
+    titles = {1: "Page Turner", 2: "Chapter Master", 3: "Archivist", 4: "Literary Overlord"}
+    return {
+        "total_xp":    total_xp,
+        "level":       level,
+        "xp_in_level": xp_in_lvl,
+        "level_cap":   level_cap,
+        "progress_pct": float(xp_in_lvl / level_cap),
+        "title":       titles.get(level, "Immortal Scholar"),
+    }
+
 
 def _compute_user_stats(user_df: pd.DataFrame) -> dict:
-    """Return a dict of scalar stats for the current user."""
+    if user_df.empty:
+        return {"n_finished": 0, "fastest": 999.0, "avg_rating": None, "streak": 0}
+
     n_finished = 0
     fastest    = 999.0
     ratings    = []
-    streak     = 0
-
-    if user_df.empty:
-        return {"n_finished": 0, "fastest": fastest, "avg_rating": None, "streak": 0}
 
     if "Finished" in user_df.columns:
         n_finished = int((user_df["Finished"].str.lower() == "yes").sum())
 
     if "DaysToRead" in user_df.columns and "Finished" in user_df.columns:
-        finished_reads = user_df[user_df["Finished"].str.strip().str.lower() == "yes"].copy()
-        speeds = pd.to_numeric(finished_reads["DaysToRead"], errors="coerce").dropna()
+        done   = user_df[user_df["Finished"].str.strip().str.lower() == "yes"]
+        speeds = pd.to_numeric(done["DaysToRead"], errors="coerce").dropna()
         speeds = speeds[speeds > 0]
         if not speeds.empty:
             fastest = float(speeds.min())
@@ -68,25 +131,27 @@ def _compute_user_stats(user_df: pd.DataFrame) -> dict:
     if "Rating" in user_df.columns:
         ratings = pd.to_numeric(user_df["Rating"].dropna(), errors="coerce").dropna().tolist()
 
-    avg_rating = sum(ratings) / len(ratings) if ratings else None
-    return {"n_finished": n_finished, "fastest": fastest, "avg_rating": avg_rating, "streak": streak}
+    return {
+        "n_finished": n_finished,
+        "fastest":    fastest,
+        "avg_rating": sum(ratings) / len(ratings) if ratings else None,
+        "streak":     0,
+    }
 
 
 def _compute_streak(user_df: pd.DataFrame, checkins_df: pd.DataFrame) -> int:
-    """Count consecutive most-recent books where the user participated."""
-    all_books_ordered = (
+    all_books = (
         checkins_df.sort_values("Timestamp")["BookTitle"].dropna().unique().tolist()
         if "Timestamp" in checkins_df.columns
         else checkins_df["BookTitle"].dropna().unique().tolist()
     )
-
-    participated = set()
+    participated: set[str] = set()
     if not user_df.empty and "Finished" in user_df.columns:
         active = user_df["Finished"].str.strip().str.lower().isin(["yes", "still reading"])
         participated = set(user_df[active]["BookTitle"].str.lower().tolist())
 
     streak = 0
-    for book in reversed(all_books_ordered):
+    for book in reversed(all_books):
         if book.lower() in participated:
             streak += 1
         else:
@@ -95,8 +160,7 @@ def _compute_streak(user_df: pd.DataFrame, checkins_df: pd.DataFrame) -> int:
 
 
 def _compute_all_member_avg_ratings(checkins_df: pd.DataFrame) -> dict[str, float]:
-    """Return {member_name_lower: avg_rating} for members with ≥2 ratings."""
-    avgs = {}
+    avgs: dict[str, float] = {}
     if checkins_df.empty or "Name" not in checkins_df.columns or "Rating" not in checkins_df.columns:
         return avgs
     for name, grp in checkins_df.groupby("Name"):
@@ -106,29 +170,22 @@ def _compute_all_member_avg_ratings(checkins_df: pd.DataFrame) -> dict[str, floa
     return avgs
 
 
-# ── Badge computation ─────────────────────────────────────────────────────────
-
 def _compute_badges(
     user_clean: str,
     user_df: pd.DataFrame,
     stats: dict,
     all_member_avgs: dict,
 ) -> list[tuple[str, str, bool]]:
-    """Return list of (badge_id, label, earned) tuples."""
-
-    # Iron Resolve — 90%+ completion rate
-    completed  = len(user_df[user_df["Finished"].str.lower().eq("yes")]) if "Finished" in user_df.columns else 0
-    attempted  = len(user_df[user_df["Finished"].str.lower().isin(["yes", "no", "dnf"])]) if "Finished" in user_df.columns else 0
+    completed = len(user_df[user_df["Finished"].str.lower().eq("yes")]) if "Finished" in user_df.columns else 0
+    attempted = len(user_df[user_df["Finished"].str.lower().isin(["yes", "no", "dnf"])]) if "Finished" in user_df.columns else 0
     iron_resolve = (completed / attempted >= 0.90) if attempted > 0 else False
 
-    # Wandering Bard — 5+ audiobooks finished
     audiobooks_finished = 0
     if "Format" in user_df.columns and "Finished" in user_df.columns:
         audiobooks_finished = int(
             (user_df["Format"].str.lower().eq("audiobook") & user_df["Finished"].str.lower().eq("yes")).sum()
         )
 
-    # Philosopher — 7+ non-empty quotes
     quotes_submitted = 0
     if "Quote" in user_df.columns:
         valid = user_df["Quote"].fillna("").astype(str).str.strip()
@@ -168,10 +225,10 @@ def _badge_block(badge_id: str, label: str, earned: bool) -> None:
 
 
 def _render_achievement_badges(user_clean: str, badges: list) -> None:
-    section("🏆", "Your Badges")
+    section("", "Badges")
     BADGE_COLS = 3
     for row_start in range(0, len(badges), BADGE_COLS):
-        batch = badges[row_start : row_start + BADGE_COLS]
+        batch = badges[row_start: row_start + BADGE_COLS]
         cols  = st.columns(BADGE_COLS)
         for ci, (badge_id, label, earned) in enumerate(batch):
             with cols[ci]:
@@ -183,20 +240,19 @@ def _render_monthly_collection(user_df: pd.DataFrame, checkins_df: pd.DataFrame)
         return
 
     all_books = checkins_df["BookTitle"].dropna().unique()
-    finished_books = set()
+    finished_books: set[str] = set()
     if not user_df.empty and "Finished" in user_df.columns:
         finished_books = set(
             user_df[user_df["Finished"].str.lower() == "yes"]["BookTitle"].str.lower().tolist()
         )
 
-    section("📅", "Monthly Collection")
+    section("", "Monthly Collection")
     month_badges = [
-        (f"books/book_{i+1}", book, book.lower() in finished_books)
+        (f"books/book_{i + 1}", book, book.lower() in finished_books)
         for i, book in enumerate(all_books)
     ]
-
     for row_start in range(0, len(month_badges), 4):
-        row_slice = month_badges[row_start : row_start + 4]
+        row_slice = month_badges[row_start: row_start + 4]
         cols      = st.columns(4)
         for ci, (badge_id, label, earned) in enumerate(row_slice):
             with cols[ci]:
@@ -217,8 +273,6 @@ def _render_pace_chart(user_df: pd.DataFrame) -> None:
 
     section("⚡", "Reading Pace")
     avg_days = pace_df["DaysToRead"].mean()
-
-    # Colour bars by whether they're above/below the user's own average
     pace_df["Color"] = pace_df["DaysToRead"].apply(
         lambda d: THEME["palette"][2] if d <= avg_days else THEME["accent"]
     )
@@ -247,7 +301,7 @@ def _render_pace_chart(user_df: pd.DataFrame) -> None:
     st.markdown(
         f'<p class="page-intro-sm" style="text-align:center">'
         f'<span style="color:{THEME["palette"][2]}">■</span> faster than your avg &nbsp;'
-        f'<span style="color:{THEME["accent"]}">■</span> slower than your avg</p>',
+        f'<span style="color:{THEME["accent"]}">■</span> slower</p>',
         unsafe_allow_html=True,
     )
 
@@ -255,6 +309,6 @@ def _render_pace_chart(user_df: pd.DataFrame) -> None:
 def _render_checkin_history(user_df: pd.DataFrame) -> None:
     if user_df.empty:
         return
-    section("📖", "Your Check-ins")
-    show_cols = [c for c in ["BookTitle", "Finished", "DaysToRead", "Format", "Rating", "Timestamp"] if c in user_df.columns]
+    section("📖", "Check-in History")
+    show_cols = [c for c in ["BookTitle", "Finished", "DaysToRead", "Format", "Rating"] if c in user_df.columns]
     st.dataframe(user_df[show_cols], use_container_width=True, hide_index=True)

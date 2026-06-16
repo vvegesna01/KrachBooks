@@ -6,7 +6,7 @@ def render_footer():
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.subheader("🚀 Help shape KrachBooks")
+        st.subheader("Help shape KrachBooks")
 
         st.caption(
             """
@@ -25,5 +25,5 @@ def render_footer():
             label="Keerthana Vegesna",
             icon="👩‍💻",
         )
-        st.caption("© 2026 Krach Club • Version 2.0")
+        st.caption("© 2026 Krach Club • Version 2.4")
     

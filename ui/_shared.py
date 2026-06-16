@@ -17,7 +17,7 @@ CURATORS = [
 ]
 
 MEMBERS = [
-    "Test User", "Ani", "Aryan", "BO$$", "DetPleasant2000", "KD", "Kavya",
+    "Ani", "Aryan", "BO$$", "DetPleasant2000", "KD", "Kavya",
     "Keeth", "Maya", "OJ", "Pranjal", "Pooja", "RishRash", "Satabdiya",
     "Shivani", "Smrithi", "Tanvi", "Viswa",
 ]
@@ -26,11 +26,11 @@ MEMBERS = [
 THEME = {
     "bg":      "#1a1318",
     "paper":   "#241b23",
-    "accent":  "#ff6542",
+    "accent":  "#f9b14a",
     "gold":    "#e0cba8",
     "muted":   "#9a8a98",
     "grid":    "rgba(136,73,143,0.2)",
-    "palette": ["#ff6542", "#e0cba8", "#779fa1", "#88498f", "#a89faa"],
+    "palette": ["#f9b14a", "#e0cba8", "#779fa1", "#88498f", "#a89faa"],
 }
 
 

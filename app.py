@@ -50,13 +50,6 @@ if not st.session_state.authenticated:
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 from utils.gsheet_ops import get_data, get_config
-# from utils.ui import (
-#     render_dashboard, render_cover_wall,
-#     render_checkin_form, render_voting_form,
-#     render_curator_panel, render_profile, render_world_map,
-#     render_month_progress,
-#     MEMBERS,
-# )
 from ui._shared import MEMBERS, CURATORS
 from ui.dashboard import render_dashboard, render_month_progress
 from ui.forms import render_checkin_form, render_voting_form
@@ -68,24 +61,32 @@ from utils.club_constitution import render_constitution
 from ui.footer import render_footer
 from ui.archive import render_archive
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# ── Header 
 import base64
 from pathlib import Path
 
+def get_image_base64(image_path):
+    img_bytes = Path(image_path).read_bytes()
+    return base64.b64encode(img_bytes).decode()
 
-# ── Header ────────────────────────────────────────────────────────────────────
+
+logo_base64 = get_image_base64("assets/logo/logo.png")
+
+
+# ── Header
 st.markdown(
     '<div class="main-header">📚 KrachBooks</div>'
     '<div class="sub-header">some krached stats, and badges</div>',
     unsafe_allow_html=True,
 )
-# ── Load config first so we can determine role before anything else ───────────
+
+# ── Load config first so we can determine role before anything else 
 config          = get_config()
 current_curator = config.get("current_curator", "").strip().lower()
 current_book    = config.get("current_book", "No book selected yet")
 voting_open     = config.get("voting_open", "False").lower() == "true"
 
-# ── User selection ────────────────────────────────────────────────────────────
+# ── User selection 
 with st.sidebar:
     st.markdown("### Who goes there? 👀")
     user = st.selectbox(
@@ -122,6 +123,11 @@ vote_tab_label = "✨ Curator" if is_curator else "🗳️ Vote"
 tabs = st.tabs(["📊 Dashboard", "📚 Books", "✏️ Check-in", vote_tab_label, "🏅 My Profile", "📜 Club Constitution"])
 
 with tabs[0]:
+    # Check if the curator has opened the voting slots
+    voting_open = config.get("voting_open", "False").lower() == "true"
+    if voting_open:
+        st.info("Voting for next month is OPEN! Head over to the ballot box to pick next month")
+    
     render_month_progress(checkins_df, config)
     render_dashboard(checkins_df, config)
 
@@ -129,6 +135,7 @@ with tabs[1]:
     render_cover_wall(checkins_df)
     st.markdown("<br>", unsafe_allow_html=True)
     render_world_map(checkins_df)
+    render_archive(config)
 
 
 
