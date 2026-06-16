@@ -66,6 +66,7 @@ from ui.world_map import render_world_map
 from ui.profile import render_profile
 from utils.club_constitution import render_constitution
 from ui.footer import render_footer
+from ui.archive import render_archive
 
 # ── Header ────────────────────────────────────────────────────────────────────
 import base64
@@ -128,6 +129,7 @@ with tabs[1]:
     render_cover_wall(checkins_df)
     st.markdown("<br>", unsafe_allow_html=True)
     render_world_map(checkins_df)
+
 
 
 with tabs[2]:
