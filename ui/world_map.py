@@ -65,7 +65,7 @@ def render_world_map(checkins_df: pd.DataFrame) -> None:
         [0.00, "#1a1318"],  # 0 books — invisible (bg colour)
         [0.01, "#779fa1"],  # 1 book  — pacific teal
         [0.50, "#88498f"],  # mid     — grape
-        [1.00, "#ff6542"],  # max     — tomato
+        [1.00, "#f9b14a"],  # max     — tomato
     ]
 
     fig = px.choropleth(
@@ -111,20 +111,20 @@ def render_world_map(checkins_df: pd.DataFrame) -> None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    section("📍", "Books by Country")
+    # st.markdown("<br>", unsafe_allow_html=True)
+    # section("📍", "Books by Country")
 
-    cols = st.columns(3)
-    for i, (_, row) in enumerate(country_counts.sort_values("Country").iterrows()):
-        books_for_country = map_df[map_df["Country"] == row["Country"]]["BookTitle"].unique()
-        titles_html = "".join(
-            f'<span class="country-book-item">• {t}</span><br>'
-            for t in books_for_country
-        )
-        with cols[i % 3]:
-            st.markdown(
-                f'<div class="country-card">'
-                f'<div class="country-card-name">📍 {row["Country"]}</div>'
-                f'{titles_html}</div>',
-                unsafe_allow_html=True,
-            )
+    # cols = st.columns(3)
+    # for i, (_, row) in enumerate(country_counts.sort_values("Country").iterrows()):
+    #     books_for_country = map_df[map_df["Country"] == row["Country"]]["BookTitle"].unique()
+    #     titles_html = "".join(
+    #         f'<span class="country-book-item">• {t}</span><br>'
+    #         for t in books_for_country
+    #     )
+    #     with cols[i % 3]:
+    #         st.markdown(
+    #             f'<div class="country-card">'
+    #             f'<div class="country-card-name">📍 {row["Country"]}</div>'
+    #             f'{titles_html}</div>',
+    #             unsafe_allow_html=True,
+    #         )

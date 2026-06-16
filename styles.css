@@ -8,7 +8,7 @@
 
 /* ── ROOT VARIABLES ────────────────────────────────────────────────────────── */
 :root {
-    --caramel:    #ff6542;
+    --caramel:    #f9b14a;
     --gold:       #e0cba8;
     --pacific:    #779fa1;
     --grape:      #88498f;
@@ -391,7 +391,7 @@ body, .stApp {
 
 .shelf-book--selected {
     transform: translateY(-10px);
-    box-shadow: -3px 14px 28px rgba(255,101,66,0.45), 0 0 0 2px #ff6542, inset -2px 0 5px rgba(0,0,0,0.2);
+    box-shadow: -3px 14px 28px rgba(255,101,66,0.45), 0 0 0 2px #f9b14a, inset -2px 0 5px rgba(0,0,0,0.2);
 }
 
 .shelf-book--selected:hover {

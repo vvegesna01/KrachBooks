@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-
 from utils.book_api import get_book_info
 from utils.gsheet_ops import get_data, upsert_checkin, upsert_vote
 
@@ -37,43 +36,55 @@ def render_checkin_form(user: str, config: dict) -> None:
         return default
 
     if not existing.empty:
-        st.info("✅ You've already checked in for this book. Your previous answers are pre-filled — submit again to update.")
+        st.success("✅ **You've already checked in!** Your previous answers are pre-filled below. Feel free to update them.")
 
     with st.form("checkin_form", clear_on_submit=False):
-        finished_opts = ["Yes", "No", "Still Reading", "DNF"]
-        finished_def  = finished_opts.index(_get("Finished", "Still Reading")) if _get("Finished", "Still Reading") in finished_opts else 2
-        finished      = st.selectbox("Did you finish?", finished_opts, index=finished_def)
+        st.subheader("Reading Status")
+        
+        # Use horizontal radio buttons instead of a selectbox for faster clicking
+        finished_opts = ["Yes", "Didn't Start", "Still Reading", "DNF"]
+        finished_def = finished_opts.index(_get("Finished", "Still Reading")) if _get("Finished", "Still Reading") in finished_opts else 2
+        finished = st.radio("Did you finish the book?", finished_opts, index=finished_def, horizontal=True)
 
+        st.divider()
+        st.subheader("More Stats")
+        
+        # Group inputs into columns for a more compact, dashboard-like feel
+        
         days = st.number_input(
             "Days to read (0 if not done)",
             min_value=0, max_value=365,
             value=int(_get("DaysToRead", 0) or 0),
         )
-
         fmt_opts = ["Kindle/eBook", "Audiobook", "Hardcopy"]
-        fmt_def  = fmt_opts.index(_get("Format", "Kindle/eBook")) if _get("Format", "Kindle/eBook") in fmt_opts else 0
-        fmt      = st.selectbox("Format", fmt_opts, index=fmt_def)
+        fmt_def = fmt_opts.index(_get("Format", "Kindle/eBook")) if _get("Format", "Kindle/eBook") in fmt_opts else 0
+        fmt = st.selectbox("Reading Format", fmt_opts, index=fmt_def)
 
-        rating = st.number_input(
-            "Rating (1–5 ⭐)",
+        # Sliders are visually much nicer for 1-5 star ratings
+        rating = st.slider(
+            "Your Rating (1–5 ⭐)",
             min_value=1.0, max_value=5.0, step=0.25,
             value=round(float(_get("Rating", 3.0) or 3.0) * 4) / 4,
+            format="%f"
         )
 
-        quote    = st.text_area("Review or favourite quotes", value=_get("Quote", ""),    height=100)
-        feedback = st.text_area("General thoughts / feedback", value=_get("Feedback", ""), height=100)
+        st.divider()
+        st.subheader("Your Thoughts")
+        quote = st.text_area("✍️ Review or favourite quotes", value=_get("Quote", ""), height=100)
+        feedback = st.text_area("💭 General thoughts / feedback", value=_get("Feedback", ""), height=100)
 
-        submitted = st.form_submit_button("💾 Submit Check-in", use_container_width=True)
+        # Adding some space before the button
+        st.markdown("<br>", unsafe_allow_html=True)
+        submitted = st.form_submit_button("💾 Save Check-in", use_container_width=True)
 
     if submitted:
-        from datetime import datetime
         row = [
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             current_book, user, finished, days, fmt, rating, quote, feedback,
         ]
         try:
             upsert_checkin(user, current_book, row)
-            st.success("Check-in saved! 🎉")
+            st.toast("Check-in saved successfully!", icon="🎉")
             st.balloons()
         except Exception as e:
             st.error(f"Couldn't save: {e}")
@@ -107,44 +118,63 @@ def render_voting_form(user: str, config: dict) -> None:
         st.info("No nominations for this month yet.")
         return
 
-    # ── Nomination cards ──────────────────────────────────────────────────────
-    COLS = min(len(books), 3)
-    cols = st.columns(COLS)
-    for i, book in enumerate(books):
-        meta     = get_book_info(book)
+# ── Nomination cards (Wide List Layout) ───────────────────────────────────
+    st.markdown("### The Nominees")
+    st.write("Review this month's choices below before casting your ballot.")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    for book in books:
+        meta = get_book_info(book)
         book_row = noms_df[noms_df["BookTitle"] == book].iloc[0]
-        with cols[i % COLS]:
-            if meta and meta.get("cover_url"):
-                st.image(meta["cover_url"], width=130)
+        
+        with st.container(border=True):
+            # Horizontal split: 1 part for the image, 4 parts for the text
+            img_col, text_col = st.columns([1, 4], gap="medium")
+            
+            with img_col:
+                if meta and meta.get("cover_url"):
+                    st.image(meta["cover_url"], use_container_width=True)
+                else:
+                    st.caption("*(No cover available)*")
+                    
+            with text_col:
+                st.subheader(book, anchor=False)
+                
+                # Match the "Nominated by" styling for the author
+                author = book_row.get("Author", "Unknown Author")
+                st.caption(f"By {author}")
+                
+                # Emoji-led visual metadata
+                length = book_row.get("LengthPages", "")
+                genre = book_row.get("Genre", "")
+                diff = book_row.get("Difficulty", "")
+                
+                meta_parts = []
+                if genre:
+                    meta_parts.append(f"🎭 {genre}")
+                if length:
+                    meta_parts.append(f"📖 {length} pages")
+                if diff:
+                    meta_parts.append(f"🖊️ {diff}")
+                
+                if meta_parts:
+                    st.markdown(" &nbsp;•&nbsp; ".join(meta_parts))
+                
+                # Show the description directly
+                description = book_row.get("Description", "")
+                if description:
+                    st.write("")
+                    st.markdown(description)
+                
+                # Highlight why it was nominated
+                why = book_row.get("WhyNominated", "")
+                if why:
+                    st.info(f"**Why I'm drawn to this book:** {why}")
+                    
+                st.caption(f"*Nominated by {book_row.get('NominatedBy', '—')}*")
 
-            length       = book_row.get("LengthPages", "")
-            meta_parts   = [p for p in [
-                book_row.get("Genre"),
-                f"{length} pages" if length else None,
-                book_row.get("Difficulty"),
-            ] if p]
-            nominated_by = book_row.get("NominatedBy", "—")
-            description  = book_row.get("Description", "")
-            why          = book_row.get("WhyNominated", "")
+    # ── Pre-fill from existing ballot ────
 
-            st.markdown(
-                f'<div class="nom-card">'
-                f'<strong>{book}</strong><br>'
-                f'<small style="opacity:0.7">{book_row.get("Author", "")}</small><br>'
-                f'<small>{" · ".join(meta_parts)}</small><br>'
-                f'<small>nominated by {nominated_by}</small>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
-            if description or why:
-                with st.expander("More details"):
-                    if description:
-                        st.markdown(description)
-                    if why:
-                        st.markdown(f"**Why nominated:** {why}")
-
-    # ── Pre-fill from existing ballot ─────────────────────────────────────────
     votes_df   = get_data("Votes")
     prior_vote = {"Rank1": None, "Rank2": None, "Rank3": None}
 
@@ -167,36 +197,46 @@ def render_voting_form(user: str, config: dict) -> None:
                 "Submit again to update."
             )
 
-    # ── Ballot ────────────────────────────────────────────────────────────────
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### Your ballot")
-    st.caption("Rank all the books — 1st is your top pick.")
+# ── Ballot ────────────────────────────────────────────────────────────────
+    st.markdown("### Cast Your Ballot")
+    st.caption("Rank your top choices. 1st place gets the most weight!")
 
     PLACEHOLDER = "— pick a book —"
-    options     = [PLACEHOLDER] + books
+    options = [PLACEHOLDER] + books
 
     def _default_idx(rank_key: str) -> int:
         val = prior_vote[rank_key]
         return options.index(val) if val and val in options else 0
 
     with st.form("vote_form"):
-        rank1 = st.selectbox("🥇 1st choice", options, index=_default_idx("Rank1"))
-        rank2 = st.selectbox("🥈 2nd choice", options, index=_default_idx("Rank2"))
-        rank3 = st.selectbox("🥉 3rd choice", options, index=_default_idx("Rank3"))
+        # Put the rankings side-by-side to save vertical space
+        rank_col1, rank_col2, rank_col3 = st.columns(3)
+        
+        with rank_col1:
+            rank1 = st.selectbox("🥇 1st choice", options, index=_default_idx("Rank1"))
+        with rank_col2:
+            rank2 = st.selectbox("🥈 2nd choice", options, index=_default_idx("Rank2"))
+        with rank_col3:
+            rank3 = st.selectbox("🥉 3rd choice", options, index=_default_idx("Rank3"))
 
-        submitted = st.form_submit_button("🗳️ Cast Vote", use_container_width=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        submitted = st.form_submit_button("🗳️ Cast Vote", type="primary", use_container_width=True)
 
     if submitted:
+        st.balloons()
         chosen = [r for r in [rank1, rank2, rank3] if r != PLACEHOLDER]
+        
+        # Fixed logic: User only needs to provide up to 3 ranks, even if there are 10 nominations
+        required_ranks = min(3, len(books))
 
-        if len(chosen) < len(books):
-            st.error(f"Please rank all {len(books)} books before submitting.")
+        if len(chosen) < required_ranks:
+            st.error(f"Please rank your top {required_ranks} books before submitting.")
         elif len(set(chosen)) < len(chosen):
-            st.error("Each book can only appear once in your ranking.")
+            st.error("You selected the same book twice! Each book can only appear once in your ranking.")
         else:
             try:
-                # BookTitle = rank1 (top pick), stored for easy per-book queries
                 upsert_vote(user, month, rank1, rank1, rank2, rank3)
+                st.toast("Vote recorded!", icon="✅")
                 st.success(f"Vote recorded — 1st: **{rank1}**, 2nd: **{rank2}**, 3rd: **{rank3}** 🎉")
                 st.rerun()
             except Exception as e:
