@@ -54,7 +54,8 @@ def get_books_lookup():
     return lookup
 
 
-# ── WRITE HELPERS (gspread — service account) ─────────────────────────────────
+# ── WRITE HELPERS (gspread — service account) ───
+
 
 def _sheet(worksheet_name: str):
     gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
@@ -196,3 +197,18 @@ def close_voting(winning_book: str, month: str):
     update_config("current_book", winning_book)
     update_config("voting_open", "False")
     get_data.clear()
+
+
+def get_all_books():
+    df = get_data("Books")
+
+    if df.empty or "BookTitle" not in df.columns:
+        return []
+
+    return sorted(
+        df["BookTitle"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
