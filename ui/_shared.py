@@ -13,7 +13,7 @@ ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
 CURATORS = [
     "Keeth", "Pranjal", "Aryan", "KD", "Ani", "Shivani",
-    "Maya", "detpleasant2000", "Satabdiya",
+    "Maya", "detpleasant2000", "Satabdiya", "RishRash",
 ]
 
 MEMBERS = [

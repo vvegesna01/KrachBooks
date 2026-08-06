@@ -169,3 +169,17 @@ For manual refresh, use `st.cache_data.clear()` or just wait 30s.
 
 MEMBERS = ["Ani","Aryan","BO$$", "DetPleasant2000", "KD", "Kavya", "Lightspeed", "Maya", "OJ", "Pranjal", "Pooja", 
         "RishRash", "Satabdiya", "Shivani", "Smrithi", "Tanvi", "Viswa"]
+
+
+
+## Notes for me:
+
+Every month you gotta:
+- Update CURATORS in `_shared.py`
+- Add book badge to `/assets`
+
+## How to run this app locally
+- activate env
+
+`streamlit run app.py`
+
